@@ -21,7 +21,7 @@ type swaggerConfig struct {
 
 func RegisterRoutes(server *rest.Server, opts ...Opts) {
 	config := &swaggerConfig{
-		SpecURL:     "/swagger.json",
+		SpecURL:     "swagger.json",
 		SwaggerHost: "https://petstore.swagger.io"}
 	for _, opt := range opts {
 		opt(config)
@@ -29,7 +29,7 @@ func RegisterRoutes(server *rest.Server, opts ...Opts) {
 
 	server.AddRoute(rest.Route{
 		Method:  http.MethodGet,
-		Path:    config.SpecURL,
+		Path:    "/swagger.json",
 		Handler: rawHandler(config),
 	})
 
