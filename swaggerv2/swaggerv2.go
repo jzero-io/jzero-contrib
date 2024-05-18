@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/zeromicro/go-zero/rest"
 )
@@ -13,15 +14,15 @@ type Opts func(*swaggerConfig)
 
 // SwaggerOpts configures the Doc middlewares.
 type swaggerConfig struct {
-	// SpecURL the url to find the spec for
-	SpecURL string
+	// SwaggerPath the path to find the spec for
+	SwaggerPath string
 	// SwaggerHost for the js that generates the swagger ui site, defaults to: http://petstore.swagger.io/
 	SwaggerHost string
 }
 
 func RegisterRoutes(server *rest.Server, opts ...Opts) {
 	config := &swaggerConfig{
-		SpecURL:     "swagger.json",
+		SwaggerPath: "swagger",
 		SwaggerHost: "https://petstore.swagger.io"}
 	for _, opt := range opts {
 		opt(config)
@@ -29,7 +30,7 @@ func RegisterRoutes(server *rest.Server, opts ...Opts) {
 
 	server.AddRoute(rest.Route{
 		Method:  http.MethodGet,
-		Path:    "/swagger.json",
+		Path:    "/swagger/:path",
 		Handler: rawHandler(config),
 	})
 
@@ -43,9 +44,10 @@ func RegisterRoutes(server *rest.Server, opts ...Opts) {
 func rawHandler(config *swaggerConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		file, err := os.ReadFile(config.SpecURL)
+		file, err := os.ReadFile(filepath.Join(config.SwaggerPath, r.PathValue("path")))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		_, _ = w.Write(file)
 	}
@@ -56,7 +58,25 @@ func uiHandler(config *swaggerConfig) http.HandlerFunc {
 		rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 		tmpl := template.Must(template.New("swagger-ui").Parse(swaggerTemplateV2))
 		buf := bytes.NewBuffer(nil)
-		_ = tmpl.Execute(buf, config)
+
+		dir, err := os.ReadDir(config.SwaggerPath)
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		var swaggerJsonsPath []string
+		for _, fi := range dir {
+			if fi.IsDir() {
+				continue
+			}
+			if filepath.Ext(fi.Name()) != ".json" {
+				swaggerJsonsPath = append(swaggerJsonsPath, fi.Name())
+			}
+		}
+		_ = tmpl.Execute(buf, map[string]interface{}{
+			"SwaggerHost":      config.SwaggerHost,
+			"SwaggerJsonsPath": swaggerJsonsPath,
+		})
 		uiHTML := buf.Bytes()
 		_, _ = rw.Write(uiHTML)
 		rw.WriteHeader(http.StatusOK)
@@ -117,7 +137,10 @@ const swaggerTemplateV2 = `
         ],
         layout: "StandaloneLayout",
 		validatorUrl: null,
-        url: "{{ .SpecURL }}",
+        urls: [
+			{{range $k, $v := .SwaggerJsonsPath}}{url: "{{ $v }}"},
+			{{end}}
+		]
       })
 
       // End Swagger UI call region
