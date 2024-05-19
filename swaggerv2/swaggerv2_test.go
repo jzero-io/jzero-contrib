@@ -13,7 +13,7 @@ func TestParseSwaggerV2Template(t *testing.T) {
 
 	_ = tmpl.Execute(buf, map[string]interface{}{
 		"SwaggerHost":      "https://petstore.swagger.io",
-		"SwaggerJsonsPath": []string{"test1.json", "test2.json"},
+		"SwaggerJsonsPath": []string{"swagger.json", "swagger2.json"},
 	})
 	fmt.Println(string(buf.Bytes()))
 }
