@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -44,7 +45,7 @@ func RegisterRoutes(server *rest.Server, opts ...Opts) {
 func rawHandler(config *swaggerConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		file, err := os.ReadFile(filepath.Join(config.SwaggerPath, r.PathValue("path")))
+		file, err := os.ReadFile(filepath.Join(config.SwaggerPath, path.Base(r.URL.Path)))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -69,7 +70,7 @@ func uiHandler(config *swaggerConfig) http.HandlerFunc {
 			if fi.IsDir() {
 				continue
 			}
-			if filepath.Ext(fi.Name()) != ".json" {
+			if filepath.Ext(fi.Name()) == ".json" {
 				swaggerJsonsPath = append(swaggerJsonsPath, fi.Name())
 			}
 		}
