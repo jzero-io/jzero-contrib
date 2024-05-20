@@ -23,7 +23,7 @@ type swaggerConfig struct {
 
 func RegisterRoutes(server *rest.Server, opts ...Opts) {
 	config := &swaggerConfig{
-		SwaggerPath: "swagger",
+		SwaggerPath: filepath.Join("app", "desc", "swagger"),
 		SwaggerHost: "https://petstore.swagger.io"}
 	for _, opt := range opts {
 		opt(config)
