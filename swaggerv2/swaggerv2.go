@@ -1,14 +1,11 @@
 package swaggerv2
 
 import (
-	"bytes"
-	"html/template"
+	"github.com/zeromicro/go-zero/rest"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
-
-	"github.com/zeromicro/go-zero/rest"
 )
 
 type Opts func(*swaggerConfig)
@@ -56,8 +53,6 @@ func rawHandler(config *swaggerConfig) http.HandlerFunc {
 func uiHandler(config *swaggerConfig) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Set("Content-Type", "text/html; charset=utf-8")
-		tmpl := template.Must(template.New("swagger-ui").Parse(swaggerTemplateV2))
-		buf := bytes.NewBuffer(nil)
 
 		dir, err := os.ReadDir(config.SwaggerPath)
 		if err != nil {
@@ -73,11 +68,12 @@ func uiHandler(config *swaggerConfig) http.HandlerFunc {
 				swaggerJsonsPath = append(swaggerJsonsPath, filepath.Join("swagger", fi.Name()))
 			}
 		}
-		_ = tmpl.Execute(buf, map[string]interface{}{
+
+		uiHTML, _ := ParseTemplate(map[string]interface{}{
 			"SwaggerHost":      config.SwaggerHost,
 			"SwaggerJsonsPath": swaggerJsonsPath,
-		})
-		uiHTML := buf.Bytes()
+		}, []byte(swaggerTemplateV2))
+
 		_, _ = rw.Write(uiHTML)
 		rw.WriteHeader(http.StatusOK)
 		return
@@ -138,7 +134,7 @@ const swaggerTemplateV2 = `
         layout: "StandaloneLayout",
 		validatorUrl: null,
         urls: [
-			{{range $k, $v := .SwaggerJsonsPath}}{url: "{{ $v }}", name: "{{ $v }}"},
+			{{range $k, $v := .SwaggerJsonsPath}}{url: "{{ $v }}", name: "{{ $v | base }}"},
 			{{end}}
 		]
       })
