@@ -6,8 +6,8 @@ func WithSwaggerHost(swaggerHost string) Opts {
 	}
 }
 
-func WithSpecURL(specURL string) Opts {
+func WithSwaggerPath(swaggerPath string) Opts {
 	return func(config *swaggerConfig) {
-		config.SpecURL = specURL
+		config.SwaggerPath = swaggerPath
 	}
 }
