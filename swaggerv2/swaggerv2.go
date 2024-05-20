@@ -71,7 +71,7 @@ func uiHandler(config *swaggerConfig) http.HandlerFunc {
 				continue
 			}
 			if filepath.Ext(fi.Name()) == ".json" {
-				swaggerJsonsPath = append(swaggerJsonsPath, fi.Name())
+				swaggerJsonsPath = append(swaggerJsonsPath, filepath.Join("swagger", fi.Name()))
 			}
 		}
 		_ = tmpl.Execute(buf, map[string]interface{}{
