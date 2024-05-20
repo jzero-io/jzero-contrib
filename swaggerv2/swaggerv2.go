@@ -44,7 +44,6 @@ func RegisterRoutes(server *rest.Server, opts ...Opts) {
 
 func rawHandler(config *swaggerConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		file, err := os.ReadFile(filepath.Join(config.SwaggerPath, path.Base(r.URL.Path)))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
