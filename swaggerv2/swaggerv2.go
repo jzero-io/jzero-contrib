@@ -13,7 +13,7 @@ import (
 
 type Opts func(*swaggerConfig)
 
-// SwaggerOpts configures the Doc middlewares.
+// SwaggerOpts configures the Doc logtoconsole.
 type swaggerConfig struct {
 	// SwaggerPath the path to find the spec for
 	SwaggerPath string
