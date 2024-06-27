@@ -11,6 +11,10 @@ import (
 	"github.com/zeromicro/go-zero/core/mr"
 )
 
+func Must(l logx.LogConf) {
+	MustLogToConsole(l)
+}
+
 func MustLogToConsole(l logx.LogConf) {
 	if l.Mode == "console" {
 		return
