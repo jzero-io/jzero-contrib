@@ -6,7 +6,7 @@ jzero contrib
 
 在线展示 swagger ui 文档
 
-[](https://oss.jaronnie.com/image-20240627175804999.png)
+![](https://oss.jaronnie.com/image-20240627175804999.png)
 
 ### Usage
 
