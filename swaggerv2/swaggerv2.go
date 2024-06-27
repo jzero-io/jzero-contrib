@@ -75,7 +75,6 @@ func uiHandler(config *swaggerConfig) http.HandlerFunc {
 		}, []byte(swaggerTemplateV2))
 
 		_, _ = rw.Write(uiHTML)
-		rw.WriteHeader(http.StatusOK)
 		return
 	}
 }
