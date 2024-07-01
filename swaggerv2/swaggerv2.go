@@ -4,8 +4,8 @@ import (
 	"github.com/zeromicro/go-zero/rest"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
+	"strings"
 )
 
 type Opts func(*swaggerConfig)
@@ -41,7 +41,18 @@ func RegisterRoutes(server *rest.Server, opts ...Opts) {
 
 func rawHandler(config *swaggerConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		file, err := os.ReadFile(filepath.Join(config.SwaggerPath, path.Base(r.URL.Path)))
+		var swaggerPath string
+		err := filepath.Walk(config.SwaggerPath, func(path string, info os.FileInfo, err error) error {
+			if info.Name() == filepath.Base(r.URL.Path) {
+				swaggerPath = path
+			}
+			return nil
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		file, err := os.ReadFile(swaggerPath)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -54,29 +65,43 @@ func uiHandler(config *swaggerConfig) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-		dir, err := os.ReadDir(config.SwaggerPath)
+		swaggerJsonsPath, err := getSwaggerFiles(config.SwaggerPath)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		var swaggerJsonsPath []string
-		for _, fi := range dir {
-			if fi.IsDir() {
-				continue
-			}
-			if filepath.Ext(fi.Name()) == ".json" {
-				swaggerJsonsPath = append(swaggerJsonsPath, filepath.Join("swagger", fi.Name()))
-			}
 		}
 
 		uiHTML, _ := ParseTemplate(map[string]interface{}{
 			"SwaggerHost":      config.SwaggerHost,
 			"SwaggerJsonsPath": swaggerJsonsPath,
 		}, []byte(swaggerTemplateV2))
-
 		_, _ = rw.Write(uiHTML)
 		return
 	}
+}
+
+func getSwaggerFiles(dir string) ([]string, error) {
+	var files []string
+
+	protoDir, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, protoFile := range protoDir {
+		if protoFile.IsDir() {
+			filenames, err := getSwaggerFiles(filepath.Join(dir, protoFile.Name()))
+			if err != nil {
+				return nil, err
+			}
+			files = append(files, filenames...)
+		} else {
+			if strings.HasSuffix(protoFile.Name(), ".json") {
+				files = append(files, filepath.Join(protoFile.Name()))
+			}
+		}
+
+	}
+	return files, nil
 }
 
 const swaggerTemplateV2 = `
