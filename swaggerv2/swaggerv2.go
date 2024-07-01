@@ -158,7 +158,7 @@ const swaggerTemplateV2 = `
         layout: "StandaloneLayout",
 		validatorUrl: null,
         urls: [
-			{{range $k, $v := .SwaggerJsonsPath}}{url: "{{ $v }}", name: "{{ $v | base }}"},
+			{{range $k, $v := .SwaggerJsonsPath}}{url: "swagger/{{ $v }}", name: "{{ $v }}"},
 			{{end}}
 		]
       })
