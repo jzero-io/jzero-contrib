@@ -11,11 +11,13 @@ import (
 	"github.com/zeromicro/go-zero/core/mr"
 )
 
+// Must
+// Deprecated: As of go-zero v1.7.0, use [logx.AddWriter(logx.NewWriter(os.Stdout))]
 func Must(l logx.LogConf) {
-	MustLogToConsole(l)
+	mustLogToConsole(l)
 }
 
-func MustLogToConsole(l logx.LogConf) {
+func mustLogToConsole(l logx.LogConf) {
 	if l.Mode == "console" {
 		return
 	}
