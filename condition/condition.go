@@ -47,6 +47,11 @@ func Apply(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
 			sb.Limit(cast.ToInt(cond.Value))
 		case "OFFSET":
 			sb.Offset(cast.ToInt(cond.Value))
+		case "BETWEEN":
+			value := castx.ToSlice(cond.Value)
+			if len(value) == 2 {
+				sb.Where(sb.Between(cond.Field, value[0], value[1]))
+			}
 		}
 	}
 }
