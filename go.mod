@@ -6,9 +6,9 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/huandu/go-sqlbuilder v1.28.0
 	github.com/nxadm/tail v1.4.11
+	github.com/pkg/errors v0.9.1
 	github.com/spf13/cast v1.3.1
 	github.com/zeromicro/go-zero v1.7.0
-	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 )
 
 require (
