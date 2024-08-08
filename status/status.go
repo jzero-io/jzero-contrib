@@ -26,17 +26,28 @@ func Register(code Code, message string) {
 	statusMap[int(code)] = errCode
 }
 
-func New(code Code, message string) *Status {
+func New(code Code, message string, err error) *Status {
 	return &Status{
 		code:    code,
 		message: message,
+		err:     err,
 	}
 }
 
 func Error(code Code) error {
-	err, ok := statusMap[int(code)]
+	status, ok := statusMap[int(code)]
 	if ok {
-		return errors.WithStack(err)
+		return errors.WithStack(status)
+	} else {
+		return Error(http.StatusInternalServerError)
+	}
+}
+
+func Wrap(code Code, err error) error {
+	status, ok := statusMap[int(code)]
+	if ok {
+		status.err = err
+		return errors.WithStack(status)
 	} else {
 		return Error(http.StatusInternalServerError)
 	}
@@ -48,13 +59,13 @@ func FromError(err error) *Status {
 	if errors.As(err, &status) {
 		return &status
 	}
-	return New(http.StatusInternalServerError, "内部错误")
+	return New(http.StatusInternalServerError, "内部错误", err)
 }
 
 func (e Status) Error() string {
 	message := e.message
 	if e.err != nil {
-		message = message + ":" + e.err.Error()
+		message = message + ": " + e.err.Error()
 	}
 	return message
 }

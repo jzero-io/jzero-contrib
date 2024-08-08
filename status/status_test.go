@@ -1,6 +1,7 @@
 package status
 
 import (
+	"github.com/pkg/errors"
 	"log"
 	"testing"
 )
@@ -14,13 +15,20 @@ func TestError(t *testing.T) {
 	log.Println(err)
 	status := FromError(err)
 	log.Println(status.code, status.message)
+}
 
-	err = Error(28000)
+func TestUnknownError(t *testing.T) {
+	err := Error(28000)
 	log.Println(err)
 
-	status = FromError(err)
+	status := FromError(err)
 	log.Println(status.code, status.message)
+}
 
+func TestWrap(t *testing.T) {
+	err := Wrap(GetUserListError, errors.New("connect to db error"))
+	status := FromError(err)
+	log.Println(status.Error())
 }
 
 func init() {
