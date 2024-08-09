@@ -7,6 +7,23 @@ import (
 	"strings"
 )
 
+const (
+	Equal            = "="
+	NotEqual         = "!="
+	GreaterThan      = ">"
+	LessThan         = "<"
+	GreaterEqualThan = ">="
+	LessEqualThan    = "<="
+	In               = "IN"
+	NotIn            = "NOT IN"
+	Like             = "LIKE"
+	NotLike          = "NOT LIKE"
+	Limit            = "LIMIT"
+	Offset           = "OFFSET"
+	Between          = "BETWEEN"
+	OrderBy          = "ORDER BY"
+)
+
 type Condition struct {
 	Skip bool
 
