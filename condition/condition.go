@@ -8,6 +8,8 @@ import (
 )
 
 type Condition struct {
+	Skip bool
+
 	Field    string
 	Operator string
 	Value    any
@@ -19,6 +21,9 @@ func New(conditions ...Condition) []Condition {
 
 func Apply(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
 	for _, cond := range conditions {
+		if cond.Skip {
+			continue
+		}
 		switch strings.ToUpper(cond.Operator) {
 		case "=":
 			sb.Where(sb.Equal(cond.Field, cond.Value))
