@@ -30,10 +30,6 @@ const (
 	OrderBy          Operator = "ORDER BY"
 )
 
-type OperatorInterface interface {
-	String() string
-}
-
 type Condition struct {
 	Skip bool
 
