@@ -4,6 +4,7 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jzero-io/jzero-contrib/castx"
 	"github.com/spf13/cast"
+	"strings"
 )
 
 type Condition struct {
@@ -18,7 +19,7 @@ func New(conditions ...Condition) []Condition {
 
 func Apply(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
 	for _, cond := range conditions {
-		switch cond.Operator {
+		switch strings.ToUpper(cond.Operator) {
 		case "=":
 			sb.Where(sb.Equal(cond.Field, cond.Value))
 		case "!=":
@@ -51,6 +52,10 @@ func Apply(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
 			value := castx.ToSlice(cond.Value)
 			if len(value) == 2 {
 				sb.Where(sb.Between(cond.Field, value[0], value[1]))
+			}
+		case "ORDER BY":
+			if len(castx.ToSlice(cond.Value)) > 0 {
+				sb.OrderBy(cast.ToStringSlice(castx.ToSlice(cond.Value))...)
 			}
 		}
 	}
