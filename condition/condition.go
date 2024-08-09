@@ -7,21 +7,23 @@ import (
 	"strings"
 )
 
+type Operators string
+
 const (
-	Equal            = "="
-	NotEqual         = "!="
-	GreaterThan      = ">"
-	LessThan         = "<"
-	GreaterEqualThan = ">="
-	LessEqualThan    = "<="
-	In               = "IN"
-	NotIn            = "NOT IN"
-	Like             = "LIKE"
-	NotLike          = "NOT LIKE"
-	Limit            = "LIMIT"
-	Offset           = "OFFSET"
-	Between          = "BETWEEN"
-	OrderBy          = "ORDER BY"
+	Equal            Operators = "="
+	NotEqual         Operators = "!="
+	GreaterThan      Operators = ">"
+	LessThan         Operators = "<"
+	GreaterEqualThan Operators = ">="
+	LessEqualThan    Operators = "<="
+	In               Operators = "IN"
+	NotIn            Operators = "NOT IN"
+	Like             Operators = "LIKE"
+	NotLike          Operators = "NOT LIKE"
+	Limit            Operators = "LIMIT"
+	Offset           Operators = "OFFSET"
+	Between          Operators = "BETWEEN"
+	OrderBy          Operators = "ORDER BY"
 )
 
 type Condition struct {
@@ -41,41 +43,41 @@ func Apply(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
 		if cond.Skip {
 			continue
 		}
-		switch strings.ToUpper(cond.Operator) {
-		case "=":
+		switch Operators(strings.ToUpper(cond.Operator)) {
+		case Equal:
 			sb.Where(sb.Equal(cond.Field, cond.Value))
-		case "!=":
+		case NotEqual:
 			sb.Where(sb.NotEqual(cond.Field, cond.Value))
-		case ">":
+		case GreaterThan:
 			sb.Where(sb.GreaterThan(cond.Field, cond.Value))
-		case "<":
+		case LessThan:
 			sb.Where(sb.LessThan(cond.Field, cond.Value))
-		case ">=":
+		case GreaterEqualThan:
 			sb.Where(sb.GreaterEqualThan(cond.Field, cond.Value))
-		case "<=":
+		case LessEqualThan:
 			sb.Where(sb.LessEqualThan(cond.Field, cond.Value))
-		case "IN":
+		case In:
 			if len(castx.ToSlice(cond.Value)) > 0 {
 				sb.Where(sb.In(cond.Field, castx.ToSlice(cond.Value)...))
 			}
-		case "NOT IN":
+		case NotIn:
 			if len(castx.ToSlice(cond.Value)) > 0 {
 				sb.Where(sb.NotIn(cond.Field, castx.ToSlice(cond.Value)...))
 			}
-		case "LIKE":
+		case Like:
 			sb.Where(sb.Like(cond.Field, cond.Value))
-		case "NOT LIKE":
+		case NotLike:
 			sb.Where(sb.NotLike(cond.Field, cond.Value))
-		case "LIMIT":
+		case Limit:
 			sb.Limit(cast.ToInt(cond.Value))
-		case "OFFSET":
+		case Offset:
 			sb.Offset(cast.ToInt(cond.Value))
-		case "BETWEEN":
+		case Between:
 			value := castx.ToSlice(cond.Value)
 			if len(value) == 2 {
 				sb.Where(sb.Between(cond.Field, value[0], value[1]))
 			}
-		case "ORDER BY":
+		case OrderBy:
 			if len(castx.ToSlice(cond.Value)) > 0 {
 				sb.OrderBy(cast.ToStringSlice(castx.ToSlice(cond.Value))...)
 			}
