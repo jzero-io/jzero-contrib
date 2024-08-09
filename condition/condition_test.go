@@ -11,7 +11,7 @@ func TestCondition(t *testing.T) {
 
 	cds := New(Condition{
 		Field:    "field1",
-		Operator: "=",
+		Operator: Equal,
 		Value:    "value1",
 	}, Condition{
 		Field:    "field2",

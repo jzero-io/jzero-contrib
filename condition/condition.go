@@ -7,30 +7,38 @@ import (
 	"strings"
 )
 
-type Operators string
+type Operator string
+
+func (o Operator) String() string {
+	return string(o)
+}
 
 const (
-	Equal            Operators = "="
-	NotEqual         Operators = "!="
-	GreaterThan      Operators = ">"
-	LessThan         Operators = "<"
-	GreaterEqualThan Operators = ">="
-	LessEqualThan    Operators = "<="
-	In               Operators = "IN"
-	NotIn            Operators = "NOT IN"
-	Like             Operators = "LIKE"
-	NotLike          Operators = "NOT LIKE"
-	Limit            Operators = "LIMIT"
-	Offset           Operators = "OFFSET"
-	Between          Operators = "BETWEEN"
-	OrderBy          Operators = "ORDER BY"
+	Equal            Operator = "="
+	NotEqual         Operator = "!="
+	GreaterThan      Operator = ">"
+	LessThan         Operator = "<"
+	GreaterEqualThan Operator = ">="
+	LessEqualThan    Operator = "<="
+	In               Operator = "IN"
+	NotIn            Operator = "NOT IN"
+	Like             Operator = "LIKE"
+	NotLike          Operator = "NOT LIKE"
+	Limit            Operator = "LIMIT"
+	Offset           Operator = "OFFSET"
+	Between          Operator = "BETWEEN"
+	OrderBy          Operator = "ORDER BY"
 )
+
+type OperatorInterface interface {
+	String() string
+}
 
 type Condition struct {
 	Skip bool
 
 	Field    string
-	Operator string
+	Operator Operator
 	Value    any
 }
 
@@ -43,7 +51,7 @@ func Apply(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
 		if cond.Skip {
 			continue
 		}
-		switch Operators(strings.ToUpper(cond.Operator)) {
+		switch Operator(strings.ToUpper(string(cond.Operator))) {
 		case Equal:
 			sb.Where(sb.Equal(cond.Field, cond.Value))
 		case NotEqual:
