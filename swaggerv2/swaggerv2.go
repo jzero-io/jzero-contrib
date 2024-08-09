@@ -65,6 +65,10 @@ func uiHandler(config *swaggerConfig) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 
+		if strings.HasSuffix(r.URL.Path, "/") {
+			http.Redirect(rw, r, strings.TrimSuffix(r.RequestURI, "/"), 301)
+		}
+
 		swaggerJsonsPath, err := getSwaggerFiles(config.SwaggerPath)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
