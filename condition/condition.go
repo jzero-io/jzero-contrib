@@ -42,6 +42,10 @@ func New(conditions ...Condition) []Condition {
 	return conditions
 }
 
+func Apply(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
+	ApplySelect(sb, conditions...)
+}
+
 func ApplySelect(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
 	for _, cond := range conditions {
 		if cond.Skip {
