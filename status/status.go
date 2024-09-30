@@ -1,8 +1,9 @@
 package status
 
 import (
-	"github.com/pkg/errors"
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 type Code int
@@ -38,9 +39,8 @@ func Error(code Code) error {
 	status, ok := statusMap[int(code)]
 	if ok {
 		return errors.WithStack(status)
-	} else {
-		return Error(http.StatusInternalServerError)
 	}
+	return Error(http.StatusInternalServerError)
 }
 
 func Wrap(code Code, err error) error {
@@ -48,9 +48,8 @@ func Wrap(code Code, err error) error {
 	if ok {
 		status.err = err
 		return errors.WithStack(status)
-	} else {
-		return Error(http.StatusInternalServerError)
 	}
+	return Error(http.StatusInternalServerError)
 }
 
 func FromError(err error) *Status {

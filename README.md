@@ -32,37 +32,84 @@ func main() {
 
 访问 localhost:8001/swagger
 
-## logtoconsole
+## condition
 
-在 go-zero 中, 设置日志 mode 为 file 或者 volume 时, 无法在控制台上查看日志, 解决办法
+查询/更新/删除 条件构建器
 
 ```go
-package main
+func TestSelectWithCondition(t *testing.T) {
+	sqlbuilder.DefaultFlavor = sqlbuilder.MySQL
 
-import (
-	"github.com/jzero-io/jzero-contrib/logtoconsole"
-	"github.com/jzero-io/jzero-contrib/swaggerv2"
-	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/service"
-	"github.com/zeromicro/go-zero/rest"
-)
+	var values []any
+	values = append(values, []int{24, 48}, []int{170, 175})
 
-func main() {
-	logConf := logx.LogConf{
-		Mode:     "file",
-		Path:     "logs",
-		Encoding: "plain",
-	}
-	server := rest.MustNewServer(rest.RestConf{
-		Port: 8001,
-		ServiceConf: service.ServiceConf{
-			Log: logConf,
-		},
+	cds := New(Condition{
+		Field:    "name",
+		Operator: Equal,
+		Value:    "jaronnie",
+	}, Condition{
+		Or:          true,
+		OrFields:    []string{"age", "height"},
+		OrOperators: []Operator{Between, Between},
+		OrValues:    values,
 	})
-	logtoconsole.Must(logConf)
-	swaggerv2.RegisterRoutes(server, swaggerv2.WithSwaggerPath("docs"))
 
-	logx.Info("starting server")
-	server.Start()
+	sb := sqlbuilder.NewSelectBuilder().Select("name", "age", "height").From("user")
+	Apply(sb, cds...)
+
+	sql, args := sb.Build()
+	fmt.Println(sql)
+	fmt.Println(args)
+}
+
+func TestUpdateWithCondition(t *testing.T) {
+	sqlbuilder.DefaultFlavor = sqlbuilder.MySQL
+
+	var values []any
+	values = append(values, []int{24, 48}, []int{170, 175})
+
+	cds := New(Condition{
+		Field:    "name",
+		Operator: Equal,
+		Value:    "jaronnie",
+	}, Condition{
+		Or:          true,
+		OrFields:    []string{"age", "height"},
+		OrOperators: []Operator{Between, Between},
+		OrValues:    values,
+	})
+
+	sb := sqlbuilder.NewUpdateBuilder().Update("user")
+	ApplyUpdate(sb, cds...)
+	sb.Set(sb.Equal("name", "gocloudcoder"))
+
+	sql, args := sb.Build()
+	fmt.Println(sql)
+	fmt.Println(args)
+}
+
+func TestDeleteWithCondition(t *testing.T) {
+	sqlbuilder.DefaultFlavor = sqlbuilder.MySQL
+
+	var values []any
+	values = append(values, []int{24, 48}, []int{170, 175})
+
+	cds := New(Condition{
+		Field:    "name",
+		Operator: Equal,
+		Value:    "jaronnie",
+	}, Condition{
+		Or:          true,
+		OrFields:    []string{"age", "height"},
+		OrOperators: []Operator{Between, Between},
+		OrValues:    values,
+	})
+
+	sb := sqlbuilder.NewDeleteBuilder().DeleteFrom("user")
+	ApplyDelete(sb, cds...)
+
+	sql, args := sb.Build()
+	fmt.Println(sql)
+	fmt.Println(args)
 }
 ```

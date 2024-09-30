@@ -4,13 +4,13 @@ import (
 	"reflect"
 )
 
-func ToSlice(i interface{}) []interface{} {
+func ToSlice(i any) []any {
 	if i == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	switch v := i.(type) {
-	case []interface{}:
+	case []any:
 		return v
 	}
 
@@ -18,7 +18,7 @@ func ToSlice(i interface{}) []interface{} {
 	switch kind {
 	case reflect.Slice, reflect.Array:
 		s := reflect.ValueOf(i)
-		a := make([]interface{}, s.Len())
+		a := make([]any, s.Len())
 		for i := range a {
 			a[i] = s.Index(i).Interface()
 		}
@@ -28,8 +28,8 @@ func ToSlice(i interface{}) []interface{} {
 		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 		reflect.Float32, reflect.Float64,
 		reflect.String:
-		return []interface{}{i}
+		return []any{i}
 	default:
-		return []interface{}{}
+		return []any{}
 	}
 }

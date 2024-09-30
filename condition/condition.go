@@ -1,10 +1,12 @@
 package condition
 
 import (
-	"github.com/huandu/go-sqlbuilder"
-	"github.com/jzero-io/jzero-contrib/castx"
-	"github.com/spf13/cast"
 	"strings"
+
+	"github.com/huandu/go-sqlbuilder"
+	"github.com/spf13/cast"
+
+	"github.com/jzero-io/jzero-contrib/castx"
 )
 
 type Operator string
@@ -34,13 +36,15 @@ type Condition struct {
 	Skip bool
 
 	// or condition
-	Or          bool
+	Or bool
+
 	OrOperators []Operator
 	OrFields    []string
 	OrValues    []any
 
 	// and condition
-	Field    string
+	Field string
+
 	Operator Operator
 	Value    any
 }
@@ -143,41 +147,79 @@ func ApplyUpdate(sb *sqlbuilder.UpdateBuilder, conditions ...Condition) {
 		if cond.Skip {
 			continue
 		}
-		switch Operator(strings.ToUpper(string(cond.Operator))) {
-		case Equal:
-			sb.Where(sb.Equal(cond.Field, cond.Value))
-		case NotEqual:
-			sb.Where(sb.NotEqual(cond.Field, cond.Value))
-		case GreaterThan:
-			sb.Where(sb.GreaterThan(cond.Field, cond.Value))
-		case LessThan:
-			sb.Where(sb.LessThan(cond.Field, cond.Value))
-		case GreaterEqualThan:
-			sb.Where(sb.GreaterEqualThan(cond.Field, cond.Value))
-		case LessEqualThan:
-			sb.Where(sb.LessEqualThan(cond.Field, cond.Value))
-		case In:
-			if len(castx.ToSlice(cond.Value)) > 0 {
-				sb.Where(sb.In(cond.Field, castx.ToSlice(cond.Value)...))
+		if cond.Or {
+			var expr []string
+			for i, field := range cond.OrFields {
+				switch Operator(strings.ToUpper(string(cond.OrOperators[i]))) {
+				case Equal:
+					expr = append(expr, sb.Equal(field, cond.OrValues[i]))
+				case NotEqual:
+					expr = append(expr, sb.NotEqual(field, cond.OrValues[i]))
+				case GreaterThan:
+					expr = append(expr, sb.GreaterThan(field, cond.OrValues[i]))
+				case LessThan:
+					expr = append(expr, sb.LessThan(field, cond.OrValues[i]))
+				case GreaterEqualThan:
+					expr = append(expr, sb.GreaterEqualThan(field, cond.OrValues[i]))
+				case LessEqualThan:
+					expr = append(expr, sb.LessEqualThan(field, cond.OrValues[i]))
+				case In:
+					if len(castx.ToSlice(cond.OrValues[i])) > 0 {
+						expr = append(expr, sb.In(field, castx.ToSlice(cond.OrValues[i])...))
+					}
+				case NotIn:
+					if len(castx.ToSlice(cond.OrValues[i])) > 0 {
+						expr = append(expr, sb.NotIn(field, castx.ToSlice(cond.OrValues[i])...))
+					}
+				case Like:
+					expr = append(expr, sb.Like(field, cond.OrValues[i]))
+				case NotLike:
+					expr = append(expr, sb.NotLike(field, cond.OrValues[i]))
+				case Between:
+					value := castx.ToSlice(cond.OrValues[i])
+					if len(value) == 2 {
+						expr = append(expr, sb.Between(field, value[0], value[1]))
+					}
+				}
 			}
-		case NotIn:
-			if len(castx.ToSlice(cond.Value)) > 0 {
-				sb.Where(sb.NotIn(cond.Field, castx.ToSlice(cond.Value)...))
-			}
-		case Like:
-			sb.Where(sb.Like(cond.Field, cond.Value))
-		case NotLike:
-			sb.Where(sb.NotLike(cond.Field, cond.Value))
-		case Limit:
-			sb.Limit(cast.ToInt(cond.Value))
-		case Between:
-			value := castx.ToSlice(cond.Value)
-			if len(value) == 2 {
-				sb.Where(sb.Between(cond.Field, value[0], value[1]))
-			}
-		case OrderBy:
-			if len(castx.ToSlice(cond.Value)) > 0 {
-				sb.OrderBy(cast.ToStringSlice(castx.ToSlice(cond.Value))...)
+			sb.Where(sb.Or(expr...))
+		} else {
+			switch Operator(strings.ToUpper(string(cond.Operator))) {
+			case Equal:
+				sb.Where(sb.Equal(cond.Field, cond.Value))
+			case NotEqual:
+				sb.Where(sb.NotEqual(cond.Field, cond.Value))
+			case GreaterThan:
+				sb.Where(sb.GreaterThan(cond.Field, cond.Value))
+			case LessThan:
+				sb.Where(sb.LessThan(cond.Field, cond.Value))
+			case GreaterEqualThan:
+				sb.Where(sb.GreaterEqualThan(cond.Field, cond.Value))
+			case LessEqualThan:
+				sb.Where(sb.LessEqualThan(cond.Field, cond.Value))
+			case In:
+				if len(castx.ToSlice(cond.Value)) > 0 {
+					sb.Where(sb.In(cond.Field, castx.ToSlice(cond.Value)...))
+				}
+			case NotIn:
+				if len(castx.ToSlice(cond.Value)) > 0 {
+					sb.Where(sb.NotIn(cond.Field, castx.ToSlice(cond.Value)...))
+				}
+			case Like:
+				sb.Where(sb.Like(cond.Field, cond.Value))
+			case NotLike:
+				sb.Where(sb.NotLike(cond.Field, cond.Value))
+			case Limit:
+				sb.Limit(cast.ToInt(cond.Value))
+			case Between:
+				value := castx.ToSlice(cond.Value)
+				if len(value) == 2 {
+					sb.Where(sb.Between(cond.Field, value[0], value[1]))
+				}
+			case OrderBy:
+				if len(castx.ToSlice(cond.Value)) > 0 {
+					sb.OrderBy(cast.ToStringSlice(castx.ToSlice(cond.Value))...)
+				}
 			}
 		}
 	}
@@ -188,41 +230,79 @@ func ApplyDelete(sb *sqlbuilder.DeleteBuilder, conditions ...Condition) {
 		if cond.Skip {
 			continue
 		}
-		switch Operator(strings.ToUpper(string(cond.Operator))) {
-		case Equal:
-			sb.Where(sb.Equal(cond.Field, cond.Value))
-		case NotEqual:
-			sb.Where(sb.NotEqual(cond.Field, cond.Value))
-		case GreaterThan:
-			sb.Where(sb.GreaterThan(cond.Field, cond.Value))
-		case LessThan:
-			sb.Where(sb.LessThan(cond.Field, cond.Value))
-		case GreaterEqualThan:
-			sb.Where(sb.GreaterEqualThan(cond.Field, cond.Value))
-		case LessEqualThan:
-			sb.Where(sb.LessEqualThan(cond.Field, cond.Value))
-		case In:
-			if len(castx.ToSlice(cond.Value)) > 0 {
-				sb.Where(sb.In(cond.Field, castx.ToSlice(cond.Value)...))
+		if cond.Or {
+			var expr []string
+			for i, field := range cond.OrFields {
+				switch Operator(strings.ToUpper(string(cond.OrOperators[i]))) {
+				case Equal:
+					expr = append(expr, sb.Equal(field, cond.OrValues[i]))
+				case NotEqual:
+					expr = append(expr, sb.NotEqual(field, cond.OrValues[i]))
+				case GreaterThan:
+					expr = append(expr, sb.GreaterThan(field, cond.OrValues[i]))
+				case LessThan:
+					expr = append(expr, sb.LessThan(field, cond.OrValues[i]))
+				case GreaterEqualThan:
+					expr = append(expr, sb.GreaterEqualThan(field, cond.OrValues[i]))
+				case LessEqualThan:
+					expr = append(expr, sb.LessEqualThan(field, cond.OrValues[i]))
+				case In:
+					if len(castx.ToSlice(cond.OrValues[i])) > 0 {
+						expr = append(expr, sb.In(field, castx.ToSlice(cond.OrValues[i])...))
+					}
+				case NotIn:
+					if len(castx.ToSlice(cond.OrValues[i])) > 0 {
+						expr = append(expr, sb.NotIn(field, castx.ToSlice(cond.OrValues[i])...))
+					}
+				case Like:
+					expr = append(expr, sb.Like(field, cond.OrValues[i]))
+				case NotLike:
+					expr = append(expr, sb.NotLike(field, cond.OrValues[i]))
+				case Between:
+					value := castx.ToSlice(cond.OrValues[i])
+					if len(value) == 2 {
+						expr = append(expr, sb.Between(field, value[0], value[1]))
+					}
+				}
 			}
-		case NotIn:
-			if len(castx.ToSlice(cond.Value)) > 0 {
-				sb.Where(sb.NotIn(cond.Field, castx.ToSlice(cond.Value)...))
-			}
-		case Like:
-			sb.Where(sb.Like(cond.Field, cond.Value))
-		case NotLike:
-			sb.Where(sb.NotLike(cond.Field, cond.Value))
-		case Limit:
-			sb.Limit(cast.ToInt(cond.Value))
-		case Between:
-			value := castx.ToSlice(cond.Value)
-			if len(value) == 2 {
-				sb.Where(sb.Between(cond.Field, value[0], value[1]))
-			}
-		case OrderBy:
-			if len(castx.ToSlice(cond.Value)) > 0 {
-				sb.OrderBy(cast.ToStringSlice(castx.ToSlice(cond.Value))...)
+			sb.Where(sb.Or(expr...))
+		} else {
+			switch Operator(strings.ToUpper(string(cond.Operator))) {
+			case Equal:
+				sb.Where(sb.Equal(cond.Field, cond.Value))
+			case NotEqual:
+				sb.Where(sb.NotEqual(cond.Field, cond.Value))
+			case GreaterThan:
+				sb.Where(sb.GreaterThan(cond.Field, cond.Value))
+			case LessThan:
+				sb.Where(sb.LessThan(cond.Field, cond.Value))
+			case GreaterEqualThan:
+				sb.Where(sb.GreaterEqualThan(cond.Field, cond.Value))
+			case LessEqualThan:
+				sb.Where(sb.LessEqualThan(cond.Field, cond.Value))
+			case In:
+				if len(castx.ToSlice(cond.Value)) > 0 {
+					sb.Where(sb.In(cond.Field, castx.ToSlice(cond.Value)...))
+				}
+			case NotIn:
+				if len(castx.ToSlice(cond.Value)) > 0 {
+					sb.Where(sb.NotIn(cond.Field, castx.ToSlice(cond.Value)...))
+				}
+			case Like:
+				sb.Where(sb.Like(cond.Field, cond.Value))
+			case NotLike:
+				sb.Where(sb.NotLike(cond.Field, cond.Value))
+			case Limit:
+				sb.Limit(cast.ToInt(cond.Value))
+			case Between:
+				value := castx.ToSlice(cond.Value)
+				if len(value) == 2 {
+					sb.Where(sb.Between(cond.Field, value[0], value[1]))
+				}
+			case OrderBy:
+				if len(castx.ToSlice(cond.Value)) > 0 {
+					sb.OrderBy(cast.ToStringSlice(castx.ToSlice(cond.Value))...)
+				}
 			}
 		}
 	}

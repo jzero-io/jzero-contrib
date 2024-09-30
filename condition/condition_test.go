@@ -2,12 +2,13 @@ package condition
 
 import (
 	"fmt"
-	"github.com/huandu/go-sqlbuilder"
 	"testing"
+
+	"github.com/huandu/go-sqlbuilder"
 )
 
-func TestCondition(t *testing.T) {
-	sqlbuilder.DefaultFlavor = sqlbuilder.PostgreSQL
+func TestSelectWithCondition(t *testing.T) {
+	sqlbuilder.DefaultFlavor = sqlbuilder.MySQL
 
 	var values []any
 	values = append(values, []int{24, 48}, []int{170, 175})
@@ -25,6 +26,57 @@ func TestCondition(t *testing.T) {
 
 	sb := sqlbuilder.NewSelectBuilder().Select("name", "age", "height").From("user")
 	Apply(sb, cds...)
+
+	sql, args := sb.Build()
+	fmt.Println(sql)
+	fmt.Println(args)
+}
+
+func TestUpdateWithCondition(t *testing.T) {
+	sqlbuilder.DefaultFlavor = sqlbuilder.MySQL
+
+	var values []any
+	values = append(values, []int{24, 48}, []int{170, 175})
+
+	cds := New(Condition{
+		Field:    "name",
+		Operator: Equal,
+		Value:    "jaronnie",
+	}, Condition{
+		Or:          true,
+		OrFields:    []string{"age", "height"},
+		OrOperators: []Operator{Between, Between},
+		OrValues:    values,
+	})
+
+	sb := sqlbuilder.NewUpdateBuilder().Update("user")
+	ApplyUpdate(sb, cds...)
+	sb.Set(sb.Equal("name", "gocloudcoder"))
+
+	sql, args := sb.Build()
+	fmt.Println(sql)
+	fmt.Println(args)
+}
+
+func TestDeleteWithCondition(t *testing.T) {
+	sqlbuilder.DefaultFlavor = sqlbuilder.MySQL
+
+	var values []any
+	values = append(values, []int{24, 48}, []int{170, 175})
+
+	cds := New(Condition{
+		Field:    "name",
+		Operator: Equal,
+		Value:    "jaronnie",
+	}, Condition{
+		Or:          true,
+		OrFields:    []string{"age", "height"},
+		OrOperators: []Operator{Between, Between},
+		OrValues:    values,
+	})
+
+	sb := sqlbuilder.NewDeleteBuilder().DeleteFrom("user")
+	ApplyDelete(sb, cds...)
 
 	sql, args := sb.Build()
 	fmt.Println(sql)

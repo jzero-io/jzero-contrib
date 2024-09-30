@@ -2,12 +2,13 @@ package swaggerv2
 
 import (
 	"bytes"
-	sprig "github.com/Masterminds/sprig/v3"
 	"html/template"
+
+	sprig "github.com/Masterminds/sprig/v3"
 )
 
 // ParseTemplate template
-func ParseTemplate(data interface{}, tplT []byte) ([]byte, error) {
+func ParseTemplate(data any, tplT []byte) ([]byte, error) {
 	t := template.Must(template.New("production").Funcs(sprig.HtmlFuncMap()).Parse(string(tplT)))
 
 	buf := new(bytes.Buffer)

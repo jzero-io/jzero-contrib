@@ -1,9 +1,10 @@
 package status
 
 import (
-	"github.com/pkg/errors"
 	"log"
 	"testing"
+
+	"github.com/pkg/errors"
 )
 
 const (

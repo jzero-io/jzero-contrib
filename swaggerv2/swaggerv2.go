@@ -1,11 +1,12 @@
 package swaggerv2
 
 import (
-	"github.com/zeromicro/go-zero/rest"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/zeromicro/go-zero/rest"
 )
 
 type Opts func(*swaggerConfig)
@@ -14,6 +15,7 @@ type Opts func(*swaggerConfig)
 type swaggerConfig struct {
 	// SwaggerPath the path to find the spec for
 	SwaggerPath string
+
 	// SwaggerHost for the js that generates the swagger ui site, defaults to: http://petstore.swagger.io/
 	SwaggerHost string
 }
@@ -74,7 +76,7 @@ func uiHandler(config *swaggerConfig) http.HandlerFunc {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
 
-		uiHTML, _ := ParseTemplate(map[string]interface{}{
+		uiHTML, _ := ParseTemplate(map[string]any{
 			"SwaggerHost":      config.SwaggerHost,
 			"SwaggerJsonsPath": swaggerJsonsPath,
 		}, []byte(swaggerTemplateV2))
@@ -103,7 +105,6 @@ func getSwaggerFiles(dir string) ([]string, error) {
 				files = append(files, filepath.Join(protoFile.Name()))
 			}
 		}
-
 	}
 	return files, nil
 }
