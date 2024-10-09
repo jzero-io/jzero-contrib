@@ -33,20 +33,21 @@ const (
 )
 
 type Condition struct {
-	Skip bool
+	Skip     bool
+	SkipFunc func() bool
 
 	// or condition
-	Or bool
-
-	OrOperators []Operator
-	OrFields    []string
-	OrValues    []any
+	Or           bool
+	OrOperators  []Operator
+	OrFields     []string
+	OrValues     []any
+	OrValuesFunc func() []any
 
 	// and condition
-	Field string
-
-	Operator Operator
-	Value    any
+	Field     string
+	Operator  Operator
+	Value     any
+	ValueFunc func() any
 }
 
 func New(conditions ...Condition) []Condition {
@@ -59,10 +60,16 @@ func Apply(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
 
 func ApplySelect(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
 	for _, cond := range conditions {
+		if cond.SkipFunc != nil {
+			cond.Skip = cond.SkipFunc()
+		}
 		if cond.Skip {
 			continue
 		}
 		if cond.Or {
+			if cond.OrValuesFunc != nil {
+				cond.OrValues = cond.OrValuesFunc()
+			}
 			var expr []string
 			for i, field := range cond.OrFields {
 				switch Operator(strings.ToUpper(string(cond.OrOperators[i]))) {
@@ -99,6 +106,9 @@ func ApplySelect(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
 			}
 			sb.Where(sb.Or(expr...))
 		} else {
+			if cond.ValueFunc != nil {
+				cond.Value = cond.ValueFunc()
+			}
 			switch Operator(strings.ToUpper(string(cond.Operator))) {
 			case Equal:
 				sb.Where(sb.Equal(cond.Field, cond.Value))
@@ -144,10 +154,16 @@ func ApplySelect(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
 
 func ApplyUpdate(sb *sqlbuilder.UpdateBuilder, conditions ...Condition) {
 	for _, cond := range conditions {
+		if cond.SkipFunc != nil {
+			cond.Skip = cond.SkipFunc()
+		}
 		if cond.Skip {
 			continue
 		}
 		if cond.Or {
+			if cond.OrValuesFunc != nil {
+				cond.OrValues = cond.OrValuesFunc()
+			}
 			var expr []string
 			for i, field := range cond.OrFields {
 				switch Operator(strings.ToUpper(string(cond.OrOperators[i]))) {
@@ -184,6 +200,9 @@ func ApplyUpdate(sb *sqlbuilder.UpdateBuilder, conditions ...Condition) {
 			}
 			sb.Where(sb.Or(expr...))
 		} else {
+			if cond.ValueFunc != nil {
+				cond.Value = cond.ValueFunc()
+			}
 			switch Operator(strings.ToUpper(string(cond.Operator))) {
 			case Equal:
 				sb.Where(sb.Equal(cond.Field, cond.Value))
@@ -227,10 +246,16 @@ func ApplyUpdate(sb *sqlbuilder.UpdateBuilder, conditions ...Condition) {
 
 func ApplyDelete(sb *sqlbuilder.DeleteBuilder, conditions ...Condition) {
 	for _, cond := range conditions {
+		if cond.SkipFunc != nil {
+			cond.Skip = cond.SkipFunc()
+		}
 		if cond.Skip {
 			continue
 		}
 		if cond.Or {
+			if cond.OrValuesFunc != nil {
+				cond.OrValues = cond.OrValuesFunc()
+			}
 			var expr []string
 			for i, field := range cond.OrFields {
 				switch Operator(strings.ToUpper(string(cond.OrOperators[i]))) {
@@ -267,6 +292,9 @@ func ApplyDelete(sb *sqlbuilder.DeleteBuilder, conditions ...Condition) {
 			}
 			sb.Where(sb.Or(expr...))
 		} else {
+			if cond.ValueFunc != nil {
+				cond.Value = cond.ValueFunc()
+			}
 			switch Operator(strings.ToUpper(string(cond.Operator))) {
 			case Equal:
 				sb.Where(sb.Equal(cond.Field, cond.Value))

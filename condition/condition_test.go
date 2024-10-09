@@ -65,14 +65,23 @@ func TestDeleteWithCondition(t *testing.T) {
 	values = append(values, []int{24, 48}, []int{170, 175})
 
 	cds := New(Condition{
+		SkipFunc: func() bool {
+			return true
+		},
 		Field:    "name",
 		Operator: Equal,
 		Value:    "jaronnie",
+		ValueFunc: func() any {
+			return "jaronnie2"
+		},
 	}, Condition{
 		Or:          true,
 		OrFields:    []string{"age", "height"},
 		OrOperators: []Operator{Between, Between},
 		OrValues:    values,
+		OrValuesFunc: func() []any {
+			return []any{[]int{24, 49}, []int{170, 176}}
+		},
 	})
 
 	sb := sqlbuilder.NewDeleteBuilder().DeleteFrom("user")
