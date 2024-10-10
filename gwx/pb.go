@@ -2,6 +2,7 @@ package gwx
 
 import (
 	"embed"
+	"github.com/pkg/errors"
 	"io/fs"
 	"os"
 	"strings"
@@ -31,6 +32,19 @@ func WritePbToLocal(pb embed.FS, opts ...Opts) ([]string, error) {
 			if err != nil {
 				return err
 			}
+			if stat, err := os.Stat(config.Dir); err != nil {
+				if !os.IsExist(err) {
+					err = os.MkdirAll(config.Dir, 0o755)
+					if err != nil {
+						return err
+					}
+				}
+			} else {
+				if !stat.IsDir() {
+					return errors.Errorf("%s: not a directory", config.Dir)
+				}
+			}
+
 			tmpFile, err := os.CreateTemp(config.Dir, "*.pb")
 			if err != nil {
 				return err
