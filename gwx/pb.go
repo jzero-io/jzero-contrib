@@ -7,7 +7,19 @@ import (
 	"strings"
 )
 
-func WritePbToLocal(pb embed.FS) ([]string, error) {
+type Opts func(config *gwxConfig)
+
+type gwxConfig struct {
+	Dir string
+}
+
+func WritePbToLocal(pb embed.FS, opts ...Opts) ([]string, error) {
+	config := &gwxConfig{}
+
+	for _, opt := range opts {
+		opt(config)
+	}
+
 	var fileList []string
 
 	err := fs.WalkDir(pb, ".", func(path string, d fs.DirEntry, err error) error {
@@ -19,7 +31,7 @@ func WritePbToLocal(pb embed.FS) ([]string, error) {
 			if err != nil {
 				return err
 			}
-			tmpFile, err := os.CreateTemp("", "*.pb")
+			tmpFile, err := os.CreateTemp(config.Dir, "*.pb")
 			if err != nil {
 				return err
 			}
