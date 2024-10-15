@@ -1,9 +1,12 @@
 module github.com/jzero-io/jzero-contrib
 
-go 1.21
+go 1.21.4
+
+toolchain go1.22.3
 
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3
+	github.com/guregu/null/v5 v5.0.0
 	github.com/huandu/go-sqlbuilder v1.28.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cast v1.3.1
