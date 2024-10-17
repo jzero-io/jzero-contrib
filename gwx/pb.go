@@ -32,16 +32,18 @@ func WritePbToLocal(pb embed.FS, opts ...Opts) ([]string, error) {
 			if err != nil {
 				return err
 			}
-			if stat, err := os.Stat(config.Dir); err != nil {
-				if !os.IsExist(err) {
-					err = os.MkdirAll(config.Dir, 0o755)
-					if err != nil {
-						return err
+			if config.Dir != "" {
+				if stat, err := os.Stat(config.Dir); err != nil {
+					if !os.IsExist(err) {
+						err = os.MkdirAll(config.Dir, 0o755)
+						if err != nil {
+							return err
+						}
 					}
-				}
-			} else {
-				if !stat.IsDir() {
-					return errors.Errorf("%s: not a directory", config.Dir)
+				} else {
+					if !stat.IsDir() {
+						return errors.Errorf("%s: not a directory", config.Dir)
+					}
 				}
 			}
 
