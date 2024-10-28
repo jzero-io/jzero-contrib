@@ -34,18 +34,22 @@ const (
 )
 
 type Condition struct {
+	chains []Condition
+
 	Skip     bool
 	SkipFunc func() bool
 
 	// or condition
-	Or           bool
+	Or bool
+
 	OrOperators  []Operator
 	OrFields     []string
 	OrValues     []any
 	OrValuesFunc func() []any
 
 	// and condition
-	Field     string
+	Field string
+
 	Operator  Operator
 	Value     any
 	ValueFunc func() any
