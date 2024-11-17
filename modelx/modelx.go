@@ -7,7 +7,7 @@ import (
 
 type ModelOpts struct {
 	CacheConf cache.CacheConf
-	CacheOpts cache.Options
+	CacheOpts []cache.Options
 }
 
 func (opts ModelOpts) DefaultOptions() ModelOpts {
@@ -20,7 +20,7 @@ func WithCacheConf(cacheConf cache.CacheConf) opts.Opt[ModelOpts] {
 	}
 }
 
-func WithCacheOpts(cacheOpts cache.Options) opts.Opt[ModelOpts] {
+func WithCacheOpts(cacheOpts ...cache.Options) opts.Opt[ModelOpts] {
 	return func(o *ModelOpts) {
 		o.CacheOpts = cacheOpts
 	}
