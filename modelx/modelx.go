@@ -3,15 +3,23 @@ package modelx
 import (
 	"github.com/eddieowens/opts"
 	"github.com/zeromicro/go-zero/core/stores/cache"
+	"github.com/zeromicro/go-zero/core/stores/sqlc"
 )
 
 type ModelOpts struct {
-	CacheConf cache.CacheConf
-	CacheOpts []cache.Option
+	CachedConn sqlc.CachedConn
+	CacheConf  cache.CacheConf
+	CacheOpts  []cache.Option
 }
 
 func (opts ModelOpts) DefaultOptions() ModelOpts {
 	return ModelOpts{}
+}
+
+func WithCachedConn(cachedConn sqlc.CachedConn) opts.Opt[ModelOpts] {
+	return func(o *ModelOpts) {
+		o.CachedConn = cachedConn
+	}
 }
 
 func WithCacheConf(cacheConf cache.CacheConf) opts.Opt[ModelOpts] {
