@@ -7,7 +7,7 @@ import (
 )
 
 type ModelOpts struct {
-	CachedConn sqlc.CachedConn
+	CachedConn *sqlc.CachedConn
 	CacheConf  cache.CacheConf
 	CacheOpts  []cache.Option
 }
@@ -18,7 +18,7 @@ func (opts ModelOpts) DefaultOptions() ModelOpts {
 
 func WithCachedConn(cachedConn sqlc.CachedConn) opts.Opt[ModelOpts] {
 	return func(o *ModelOpts) {
-		o.CachedConn = cachedConn
+		o.CachedConn = &cachedConn
 	}
 }
 
