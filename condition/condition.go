@@ -30,12 +30,9 @@ const (
 	Offset           Operator = "OFFSET"
 	Between          Operator = "BETWEEN"
 	OrderBy          Operator = "ORDER BY"
-	GroupBy          Operator = "GROUP BY"
 )
 
 type Condition struct {
-	chains []Condition
-
 	Skip     bool
 	SkipFunc func() bool
 
@@ -151,10 +148,6 @@ func ApplySelect(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
 			case OrderBy:
 				if len(castx.ToSlice(cond.Value)) > 0 {
 					sb.OrderBy(cast.ToStringSlice(castx.ToSlice(cond.Value))...)
-				}
-			case GroupBy:
-				if len(castx.ToSlice(cond.Value)) > 0 {
-					sb.GroupBy(cast.ToStringSlice(castx.ToSlice(cond.Value))...)
 				}
 			}
 		}
