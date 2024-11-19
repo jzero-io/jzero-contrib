@@ -143,6 +143,6 @@ func (c Chain) Page(page, pageSize int, op ...opts.Opt[ChainOperatorOpts]) Chain
 	return c.addChain("", Offset, (page-1)*pageSize, op...).addChain("", Limit, pageSize, op...)
 }
 
-func (c Chain) ToCondition() []Condition {
+func (c Chain) Build() []Condition {
 	return c.conditions
 }
