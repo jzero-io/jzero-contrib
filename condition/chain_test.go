@@ -16,7 +16,7 @@ func TestChain(t *testing.T) {
 		Equal("field2", "value2").
 		OrderBy("create_time desc").
 		OrderBy("sort desc").
-		ToCondition()
+		Build()
 	ApplySelect(sb, conds...)
 
 	sql, args := sb.Build()

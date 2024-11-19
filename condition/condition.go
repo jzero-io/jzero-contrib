@@ -29,6 +29,7 @@ const (
 	Limit            Operator = "LIMIT"
 	Offset           Operator = "OFFSET"
 	Between          Operator = "BETWEEN"
+	NotBetween       Operator = "NOT BETWEEN"
 	OrderBy          Operator = "ORDER BY"
 )
 
@@ -56,284 +57,184 @@ func New(conditions ...Condition) []Condition {
 	return conditions
 }
 
-func Apply(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
-	ApplySelect(sb, conditions...)
+func buildWhereClause(conditions ...Condition) *sqlbuilder.WhereClause {
+	clause := sqlbuilder.NewWhereClause()
+	cond := sqlbuilder.NewCond()
+
+	for _, c := range conditions {
+		if c.SkipFunc != nil {
+			c.Skip = c.SkipFunc()
+		}
+		if c.Skip {
+			continue
+		}
+		if c.Or {
+			if c.OrValuesFunc != nil {
+				c.OrValues = c.OrValuesFunc()
+			}
+			var expr []string
+			for i, field := range c.OrFields {
+				switch Operator(strings.ToUpper(string(c.OrOperators[i]))) {
+				case Equal:
+					expr = append(expr, cond.Equal(field, c.OrValues[i]))
+				case NotEqual:
+					expr = append(expr, cond.NotEqual(field, c.OrValues[i]))
+				case GreaterThan:
+					expr = append(expr, cond.GreaterThan(field, c.OrValues[i]))
+				case LessThan:
+					expr = append(expr, cond.LessThan(field, c.OrValues[i]))
+				case GreaterEqualThan:
+					expr = append(expr, cond.GreaterEqualThan(field, c.OrValues[i]))
+				case LessEqualThan:
+					expr = append(expr, cond.LessEqualThan(field, c.OrValues[i]))
+				case In:
+					if len(castx.ToSlice(c.OrValues[i])) > 0 {
+						expr = append(expr, cond.In(field, castx.ToSlice(c.OrValues[i])...))
+					}
+				case NotIn:
+					if len(castx.ToSlice(c.OrValues[i])) > 0 {
+						expr = append(expr, cond.NotIn(field, castx.ToSlice(c.OrValues[i])...))
+					}
+				case Like:
+					expr = append(expr, cond.Like(field, c.OrValues[i]))
+				case NotLike:
+					expr = append(expr, cond.NotLike(field, c.OrValues[i]))
+				case Between:
+					value := castx.ToSlice(c.OrValues[i])
+					if len(value) == 2 {
+						expr = append(expr, cond.Between(field, value[0], value[1]))
+					}
+				case NotBetween:
+					value := castx.ToSlice(c.OrValues[i])
+					if len(value) == 2 {
+						expr = append(expr, cond.NotBetween(field, value[0], value[1]))
+					}
+				}
+			}
+			if len(expr) > 0 {
+				clause.AddWhereExpr(cond.Args, cond.Or(expr...))
+			}
+		} else {
+			if c.ValueFunc != nil {
+				c.Value = c.ValueFunc()
+			}
+			switch Operator(strings.ToUpper(string(c.Operator))) {
+			case Equal:
+				clause.AddWhereExpr(cond.Args, cond.Equal(c.Field, c.Value))
+			case NotEqual:
+				clause.AddWhereExpr(cond.Args, cond.NotEqual(c.Field, c.Value))
+			case GreaterThan:
+				clause.AddWhereExpr(cond.Args, cond.GreaterThan(c.Field, c.Value))
+			case LessThan:
+				clause.AddWhereExpr(cond.Args, cond.LessThan(c.Field, c.Value))
+			case GreaterEqualThan:
+				clause.AddWhereExpr(cond.Args, cond.GreaterThan(c.Field, c.Value))
+			case LessEqualThan:
+				clause.AddWhereExpr(cond.Args, cond.LessThan(c.Field, c.Value))
+			case In:
+				if len(castx.ToSlice(c.Value)) > 0 {
+					clause.AddWhereExpr(cond.Args, cond.In(c.Field, castx.ToSlice(c.Value)...))
+				}
+			case NotIn:
+				if len(castx.ToSlice(c.Value)) > 0 {
+					clause.AddWhereExpr(cond.Args, cond.NotIn(c.Field, castx.ToSlice(c.Value)...))
+				}
+			case Like:
+				clause.AddWhereExpr(cond.Args, cond.Like(c.Field, c.Value))
+			case NotLike:
+				clause.AddWhereExpr(cond.Args, cond.NotLike(c.Field, c.Value))
+			case Between:
+				value := castx.ToSlice(c.Value)
+				if len(value) == 2 {
+					clause.AddWhereExpr(cond.Args, cond.Between(c.Field, value[0], value[1]))
+				}
+			case NotBetween:
+				value := castx.ToSlice(c.Value)
+				if len(value) == 2 {
+					clause.AddWhereExpr(cond.Args, cond.NotBetween(c.Field, value[0], value[1]))
+				}
+			}
+		}
+	}
+	return clause
 }
 
 func ApplySelect(sb *sqlbuilder.SelectBuilder, conditions ...Condition) {
-	for _, cond := range conditions {
-		if cond.SkipFunc != nil {
-			cond.Skip = cond.SkipFunc()
+	clause := buildWhereClause(conditions...)
+	for _, c := range conditions {
+		if c.SkipFunc != nil {
+			c.Skip = c.SkipFunc()
 		}
-		if cond.Skip {
+		if c.Skip {
 			continue
 		}
-		if cond.Or {
-			if cond.OrValuesFunc != nil {
-				cond.OrValues = cond.OrValuesFunc()
-			}
-			var expr []string
-			for i, field := range cond.OrFields {
-				switch Operator(strings.ToUpper(string(cond.OrOperators[i]))) {
-				case Equal:
-					expr = append(expr, sb.Equal(field, cond.OrValues[i]))
-				case NotEqual:
-					expr = append(expr, sb.NotEqual(field, cond.OrValues[i]))
-				case GreaterThan:
-					expr = append(expr, sb.GreaterThan(field, cond.OrValues[i]))
-				case LessThan:
-					expr = append(expr, sb.LessThan(field, cond.OrValues[i]))
-				case GreaterEqualThan:
-					expr = append(expr, sb.GreaterEqualThan(field, cond.OrValues[i]))
-				case LessEqualThan:
-					expr = append(expr, sb.LessEqualThan(field, cond.OrValues[i]))
-				case In:
-					if len(castx.ToSlice(cond.OrValues[i])) > 0 {
-						expr = append(expr, sb.In(field, castx.ToSlice(cond.OrValues[i])...))
-					}
-				case NotIn:
-					if len(castx.ToSlice(cond.OrValues[i])) > 0 {
-						expr = append(expr, sb.NotIn(field, castx.ToSlice(cond.OrValues[i])...))
-					}
-				case Like:
-					expr = append(expr, sb.Like(field, cond.OrValues[i]))
-				case NotLike:
-					expr = append(expr, sb.NotLike(field, cond.OrValues[i]))
-				case Between:
-					value := castx.ToSlice(cond.OrValues[i])
-					if len(value) == 2 {
-						expr = append(expr, sb.Between(field, value[0], value[1]))
-					}
-				}
-			}
-			sb.Where(sb.Or(expr...))
-		} else {
-			if cond.ValueFunc != nil {
-				cond.Value = cond.ValueFunc()
-			}
-			switch Operator(strings.ToUpper(string(cond.Operator))) {
-			case Equal:
-				sb.Where(sb.Equal(cond.Field, cond.Value))
-			case NotEqual:
-				sb.Where(sb.NotEqual(cond.Field, cond.Value))
-			case GreaterThan:
-				sb.Where(sb.GreaterThan(cond.Field, cond.Value))
-			case LessThan:
-				sb.Where(sb.LessThan(cond.Field, cond.Value))
-			case GreaterEqualThan:
-				sb.Where(sb.GreaterEqualThan(cond.Field, cond.Value))
-			case LessEqualThan:
-				sb.Where(sb.LessEqualThan(cond.Field, cond.Value))
-			case In:
-				if len(castx.ToSlice(cond.Value)) > 0 {
-					sb.Where(sb.In(cond.Field, castx.ToSlice(cond.Value)...))
-				}
-			case NotIn:
-				if len(castx.ToSlice(cond.Value)) > 0 {
-					sb.Where(sb.NotIn(cond.Field, castx.ToSlice(cond.Value)...))
-				}
-			case Like:
-				sb.Where(sb.Like(cond.Field, cond.Value))
-			case NotLike:
-				sb.Where(sb.NotLike(cond.Field, cond.Value))
-			case Limit:
-				sb.Limit(cast.ToInt(cond.Value))
-			case Offset:
-				sb.Offset(cast.ToInt(cond.Value))
-			case Between:
-				value := castx.ToSlice(cond.Value)
-				if len(value) == 2 {
-					sb.Where(sb.Between(cond.Field, value[0], value[1]))
-				}
-			case OrderBy:
-				if len(castx.ToSlice(cond.Value)) > 0 {
-					sb.OrderBy(cast.ToStringSlice(castx.ToSlice(cond.Value))...)
-				}
+		if c.ValueFunc != nil {
+			c.Value = c.ValueFunc()
+		}
+		switch Operator(strings.ToUpper(string(c.Operator))) {
+		case Limit:
+			sb.Limit(cast.ToInt(c.Value))
+		case Offset:
+			sb.Offset(cast.ToInt(c.Value))
+		case OrderBy:
+			if len(castx.ToSlice(c.Value)) > 0 {
+				sb.OrderBy(cast.ToStringSlice(castx.ToSlice(c.Value))...)
 			}
 		}
+	}
+	if clause != nil {
+		sb = sb.AddWhereClause(clause)
 	}
 }
 
 func ApplyUpdate(sb *sqlbuilder.UpdateBuilder, conditions ...Condition) {
-	for _, cond := range conditions {
-		if cond.SkipFunc != nil {
-			cond.Skip = cond.SkipFunc()
+	clause := buildWhereClause(conditions...)
+	for _, c := range conditions {
+		if c.SkipFunc != nil {
+			c.Skip = c.SkipFunc()
 		}
-		if cond.Skip {
+		if c.Skip {
 			continue
 		}
-		if cond.Or {
-			if cond.OrValuesFunc != nil {
-				cond.OrValues = cond.OrValuesFunc()
-			}
-			var expr []string
-			for i, field := range cond.OrFields {
-				switch Operator(strings.ToUpper(string(cond.OrOperators[i]))) {
-				case Equal:
-					expr = append(expr, sb.Equal(field, cond.OrValues[i]))
-				case NotEqual:
-					expr = append(expr, sb.NotEqual(field, cond.OrValues[i]))
-				case GreaterThan:
-					expr = append(expr, sb.GreaterThan(field, cond.OrValues[i]))
-				case LessThan:
-					expr = append(expr, sb.LessThan(field, cond.OrValues[i]))
-				case GreaterEqualThan:
-					expr = append(expr, sb.GreaterEqualThan(field, cond.OrValues[i]))
-				case LessEqualThan:
-					expr = append(expr, sb.LessEqualThan(field, cond.OrValues[i]))
-				case In:
-					if len(castx.ToSlice(cond.OrValues[i])) > 0 {
-						expr = append(expr, sb.In(field, castx.ToSlice(cond.OrValues[i])...))
-					}
-				case NotIn:
-					if len(castx.ToSlice(cond.OrValues[i])) > 0 {
-						expr = append(expr, sb.NotIn(field, castx.ToSlice(cond.OrValues[i])...))
-					}
-				case Like:
-					expr = append(expr, sb.Like(field, cond.OrValues[i]))
-				case NotLike:
-					expr = append(expr, sb.NotLike(field, cond.OrValues[i]))
-				case Between:
-					value := castx.ToSlice(cond.OrValues[i])
-					if len(value) == 2 {
-						expr = append(expr, sb.Between(field, value[0], value[1]))
-					}
-				}
-			}
-			sb.Where(sb.Or(expr...))
-		} else {
-			if cond.ValueFunc != nil {
-				cond.Value = cond.ValueFunc()
-			}
-			switch Operator(strings.ToUpper(string(cond.Operator))) {
-			case Equal:
-				sb.Where(sb.Equal(cond.Field, cond.Value))
-			case NotEqual:
-				sb.Where(sb.NotEqual(cond.Field, cond.Value))
-			case GreaterThan:
-				sb.Where(sb.GreaterThan(cond.Field, cond.Value))
-			case LessThan:
-				sb.Where(sb.LessThan(cond.Field, cond.Value))
-			case GreaterEqualThan:
-				sb.Where(sb.GreaterEqualThan(cond.Field, cond.Value))
-			case LessEqualThan:
-				sb.Where(sb.LessEqualThan(cond.Field, cond.Value))
-			case In:
-				if len(castx.ToSlice(cond.Value)) > 0 {
-					sb.Where(sb.In(cond.Field, castx.ToSlice(cond.Value)...))
-				}
-			case NotIn:
-				if len(castx.ToSlice(cond.Value)) > 0 {
-					sb.Where(sb.NotIn(cond.Field, castx.ToSlice(cond.Value)...))
-				}
-			case Like:
-				sb.Where(sb.Like(cond.Field, cond.Value))
-			case NotLike:
-				sb.Where(sb.NotLike(cond.Field, cond.Value))
-			case Limit:
-				sb.Limit(cast.ToInt(cond.Value))
-			case Between:
-				value := castx.ToSlice(cond.Value)
-				if len(value) == 2 {
-					sb.Where(sb.Between(cond.Field, value[0], value[1]))
-				}
-			case OrderBy:
-				if len(castx.ToSlice(cond.Value)) > 0 {
-					sb.OrderBy(cast.ToStringSlice(castx.ToSlice(cond.Value))...)
-				}
+		if c.ValueFunc != nil {
+			c.Value = c.ValueFunc()
+		}
+		switch Operator(strings.ToUpper(string(c.Operator))) {
+		case Limit:
+			sb.Limit(cast.ToInt(c.Value))
+		case OrderBy:
+			if len(castx.ToSlice(c.Value)) > 0 {
+				sb.OrderBy(cast.ToStringSlice(castx.ToSlice(c.Value))...)
 			}
 		}
+	}
+	if clause != nil {
+		sb = sb.AddWhereClause(clause)
 	}
 }
 
 func ApplyDelete(sb *sqlbuilder.DeleteBuilder, conditions ...Condition) {
-	for _, cond := range conditions {
-		if cond.SkipFunc != nil {
-			cond.Skip = cond.SkipFunc()
+	clause := buildWhereClause(conditions...)
+	for _, c := range conditions {
+		if c.SkipFunc != nil {
+			c.Skip = c.SkipFunc()
 		}
-		if cond.Skip {
+		if c.Skip {
 			continue
 		}
-		if cond.Or {
-			if cond.OrValuesFunc != nil {
-				cond.OrValues = cond.OrValuesFunc()
-			}
-			var expr []string
-			for i, field := range cond.OrFields {
-				switch Operator(strings.ToUpper(string(cond.OrOperators[i]))) {
-				case Equal:
-					expr = append(expr, sb.Equal(field, cond.OrValues[i]))
-				case NotEqual:
-					expr = append(expr, sb.NotEqual(field, cond.OrValues[i]))
-				case GreaterThan:
-					expr = append(expr, sb.GreaterThan(field, cond.OrValues[i]))
-				case LessThan:
-					expr = append(expr, sb.LessThan(field, cond.OrValues[i]))
-				case GreaterEqualThan:
-					expr = append(expr, sb.GreaterEqualThan(field, cond.OrValues[i]))
-				case LessEqualThan:
-					expr = append(expr, sb.LessEqualThan(field, cond.OrValues[i]))
-				case In:
-					if len(castx.ToSlice(cond.OrValues[i])) > 0 {
-						expr = append(expr, sb.In(field, castx.ToSlice(cond.OrValues[i])...))
-					}
-				case NotIn:
-					if len(castx.ToSlice(cond.OrValues[i])) > 0 {
-						expr = append(expr, sb.NotIn(field, castx.ToSlice(cond.OrValues[i])...))
-					}
-				case Like:
-					expr = append(expr, sb.Like(field, cond.OrValues[i]))
-				case NotLike:
-					expr = append(expr, sb.NotLike(field, cond.OrValues[i]))
-				case Between:
-					value := castx.ToSlice(cond.OrValues[i])
-					if len(value) == 2 {
-						expr = append(expr, sb.Between(field, value[0], value[1]))
-					}
-				}
-			}
-			sb.Where(sb.Or(expr...))
-		} else {
-			if cond.ValueFunc != nil {
-				cond.Value = cond.ValueFunc()
-			}
-			switch Operator(strings.ToUpper(string(cond.Operator))) {
-			case Equal:
-				sb.Where(sb.Equal(cond.Field, cond.Value))
-			case NotEqual:
-				sb.Where(sb.NotEqual(cond.Field, cond.Value))
-			case GreaterThan:
-				sb.Where(sb.GreaterThan(cond.Field, cond.Value))
-			case LessThan:
-				sb.Where(sb.LessThan(cond.Field, cond.Value))
-			case GreaterEqualThan:
-				sb.Where(sb.GreaterEqualThan(cond.Field, cond.Value))
-			case LessEqualThan:
-				sb.Where(sb.LessEqualThan(cond.Field, cond.Value))
-			case In:
-				if len(castx.ToSlice(cond.Value)) > 0 {
-					sb.Where(sb.In(cond.Field, castx.ToSlice(cond.Value)...))
-				}
-			case NotIn:
-				if len(castx.ToSlice(cond.Value)) > 0 {
-					sb.Where(sb.NotIn(cond.Field, castx.ToSlice(cond.Value)...))
-				}
-			case Like:
-				sb.Where(sb.Like(cond.Field, cond.Value))
-			case NotLike:
-				sb.Where(sb.NotLike(cond.Field, cond.Value))
-			case Limit:
-				sb.Limit(cast.ToInt(cond.Value))
-			case Between:
-				value := castx.ToSlice(cond.Value)
-				if len(value) == 2 {
-					sb.Where(sb.Between(cond.Field, value[0], value[1]))
-				}
-			case OrderBy:
-				if len(castx.ToSlice(cond.Value)) > 0 {
-					sb.OrderBy(cast.ToStringSlice(castx.ToSlice(cond.Value))...)
-				}
+		if c.ValueFunc != nil {
+			c.Value = c.ValueFunc()
+		}
+		switch Operator(strings.ToUpper(string(c.Operator))) {
+		case Limit:
+			sb.Limit(cast.ToInt(c.Value))
+		case OrderBy:
+			if len(castx.ToSlice(c.Value)) > 0 {
+				sb.OrderBy(cast.ToStringSlice(castx.ToSlice(c.Value))...)
 			}
 		}
+	}
+	if clause != nil {
+		sb = sb.AddWhereClause(clause)
 	}
 }

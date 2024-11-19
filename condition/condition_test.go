@@ -25,7 +25,7 @@ func TestSelectWithCondition(t *testing.T) {
 	})
 
 	sb := sqlbuilder.NewSelectBuilder().Select("name", "age", "height").From("user")
-	Apply(sb, cds...)
+	ApplySelect(sb, cds...)
 
 	sql, args := sb.Build()
 	fmt.Println(sql)
@@ -97,4 +97,32 @@ func TestSqlBuilder(t *testing.T) {
 	builder.Where(builder.Or(builder.Equal("id", 1), builder.Equal("id", "2")))
 	builder.Where(builder.And(builder.Equal("name", "jaronnie")))
 	fmt.Println(builder.Build())
+}
+
+func TestBuildWhereClause(t *testing.T) {
+	var values []any
+	values = append(values, []int{24, 48}, []int{170, 175})
+	cds := New(Condition{
+		SkipFunc: func() bool {
+			return true
+		},
+		Field:    "name",
+		Operator: Equal,
+		Value:    "jaronnie",
+		ValueFunc: func() any {
+			return "jaronnie2"
+		},
+	}, Condition{
+		Or:          true,
+		OrFields:    []string{"age", "height"},
+		OrOperators: []Operator{Between, Between},
+		OrValues:    values,
+		OrValuesFunc: func() []any {
+			return []any{[]int{24, 49}, []int{170, 176}}
+		},
+	})
+	clause := buildWhereClause(cds...)
+	statement, args := clause.Build()
+	fmt.Println(statement)
+	fmt.Println(args)
 }
