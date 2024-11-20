@@ -25,9 +25,9 @@ func TestSelectWithCondition(t *testing.T) {
 	})
 
 	sb := sqlbuilder.NewSelectBuilder().Select("name", "age", "height").From("user")
-	ApplySelect(sb, cds...)
+	builder := Select(*sb, cds...)
 
-	sql, args := sb.Build()
+	sql, args := builder.Build()
 	fmt.Println(sql)
 	fmt.Println(args)
 }
@@ -50,10 +50,19 @@ func TestUpdateWithCondition(t *testing.T) {
 	})
 
 	sb := sqlbuilder.NewUpdateBuilder().Update("user")
-	ApplyUpdate(sb, cds...)
-	sb.Set(sb.Equal("name", "gocloudcoder"))
+	builder := Update(*sb, cds...)
+	builder.Set(sb.Equal("name", "gocloudcoder"))
 
-	sql, args := sb.Build()
+	sql, args := builder.Build()
+	fmt.Println(sql)
+	fmt.Println(args)
+
+	builder = Update(*sb, Condition{
+		Field:    "age",
+		Operator: Equal,
+		Value:    30,
+	})
+	sql, args = builder.Build()
 	fmt.Println(sql)
 	fmt.Println(args)
 }
@@ -85,9 +94,9 @@ func TestDeleteWithCondition(t *testing.T) {
 	})
 
 	sb := sqlbuilder.NewDeleteBuilder().DeleteFrom("user")
-	ApplyDelete(sb, cds...)
+	builder := Delete(*sb, cds...)
 
-	sql, args := sb.Build()
+	sql, args := builder.Build()
 	fmt.Println(sql)
 	fmt.Println(args)
 }
@@ -99,7 +108,7 @@ func TestSqlBuilder(t *testing.T) {
 	fmt.Println(builder.Build())
 }
 
-func TestBuildWhereClause(t *testing.T) {
+func TestWhereClause(t *testing.T) {
 	var values []any
 	values = append(values, []int{24, 48}, []int{170, 175})
 	cds := New(Condition{
@@ -121,7 +130,7 @@ func TestBuildWhereClause(t *testing.T) {
 			return []any{[]int{24, 49}, []int{170, 176}}
 		},
 	})
-	clause := buildWhereClause(cds...)
+	clause := whereClause(cds...)
 	statement, args := clause.Build()
 	fmt.Println(statement)
 	fmt.Println(args)

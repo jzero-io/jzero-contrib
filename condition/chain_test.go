@@ -17,9 +17,9 @@ func TestChain(t *testing.T) {
 		OrderBy("create_time desc").
 		OrderBy("sort desc").
 		Build()
-	ApplySelect(sb, conds...)
+	builder := Select(*sb, conds...)
 
-	sql, args := sb.Build()
+	sql, args := builder.Build()
 	fmt.Println(sql)
 	fmt.Println(args)
 }
