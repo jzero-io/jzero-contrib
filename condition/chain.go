@@ -110,11 +110,12 @@ func (c Chain) Between(field string, value any, op ...opts.Opt[ChainOperatorOpts
 	return c.addChain(field, Between, value, op...)
 }
 
-func (c Chain) Or(fields []string, values []any, op ...opts.Opt[ChainOperatorOpts]) Chain {
+func (c Chain) Or(fields []string, operators []Operator, values []any, op ...opts.Opt[ChainOperatorOpts]) Chain {
 	o := opts.DefaultApply(op...)
 	c.conditions = append(c.conditions, Condition{
 		Or:           true,
 		OrFields:     fields,
+		OrOperators:  operators,
 		OrValues:     values,
 		Skip:         o.Skip,
 		SkipFunc:     o.SkipFunc,
