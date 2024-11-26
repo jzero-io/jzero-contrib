@@ -33,19 +33,15 @@ func WithSkipFunc(skipFunc func() bool) opts.Opt[ChainOperatorOpts] {
 	}
 }
 
-func WithValue(value any) opts.Opt[ChainOperatorOpts] {
+func WithValueFunc(valueFunc func() any) opts.Opt[ChainOperatorOpts] {
 	return func(c *ChainOperatorOpts) {
-		c.ValueFunc = func() any {
-			return value
-		}
+		c.ValueFunc = valueFunc
 	}
 }
 
-func WithOrValues(orValues []any) opts.Opt[ChainOperatorOpts] {
+func WithOrValuesFunc(valueFunc func() []any) opts.Opt[ChainOperatorOpts] {
 	return func(c *ChainOperatorOpts) {
-		c.OrValuesFunc = func() []any {
-			return orValues
-		}
+		c.OrValuesFunc = valueFunc
 	}
 }
 
