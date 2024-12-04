@@ -64,7 +64,7 @@ func buildExpr(cond *sqlbuilder.Cond, field string, operator Operator, value any
 	case NotEqual:
 		return cond.NotEqual(field, value)
 	case GreaterThan:
-		return cond.NotEqual(field, value)
+		return cond.GreaterThan(field, value)
 	case LessThan:
 		return cond.LessThan(field, value)
 	case GreaterEqualThan:
