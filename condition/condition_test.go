@@ -2,9 +2,9 @@ package condition
 
 import (
 	"fmt"
-	"github.com/huandu/go-assert"
 	"testing"
 
+	"github.com/huandu/go-assert"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
