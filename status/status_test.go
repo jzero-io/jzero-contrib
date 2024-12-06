@@ -33,5 +33,5 @@ func TestWrap(t *testing.T) {
 }
 
 func init() {
-	Register(GetUserListError, "获取用户列表失败")
+	Register(GetUserListError)
 }

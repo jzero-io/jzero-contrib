@@ -2,16 +2,17 @@ package modelx
 
 import (
 	"fmt"
+
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/spf13/cast"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
 type ModelxConfig struct {
-	DatabaseType string `json:",default=mysql"`
+	DatabaseType string `json:"databaseType,default=mysql"`
 
-	Mysql  MysqlConf  `json:","`
-	Sqlite SqliteConf `json:","`
+	Mysql  MysqlConf  `json:"mysql,"`
+	Sqlite SqliteConf `json:"sqlite,"`
 }
 
 type MysqlConf struct {
@@ -19,15 +20,15 @@ type MysqlConf struct {
 }
 
 type SqliteConf struct {
-	Path string `json:",default=data.db"`
+	Path string `json:"path,default=data.db"`
 }
 
 type DatabaseConf struct {
-	Host     string `json:",default=localhost"`
-	Port     int    `json:",default=3306"`
-	Username string `json:",default=root"`
-	Password string `json:",default=123456"`
-	DbName   string `json:",default=test"`
+	Host     string `json:"host,default=localhost"`
+	Port     int    `json:"port,default=3306"`
+	Username string `json:"username,default=root"`
+	Password string `json:"password,default=123456"`
+	DbName   string `json:"dbName,default=test"`
 }
 
 func BuildDataSource(c ModelxConfig) string {

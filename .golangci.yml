@@ -1,0 +1,19 @@
+run:
+  go: '1.21'
+linters:
+  enable:
+    - thelper
+    - gofumpt
+    - tparallel
+    - unconvert
+    - wastedassign
+    - tagliatelle
+
+linters-settings:
+  gofumpt:
+    # Module path which contains the source code being formatted.
+    # Default: ""
+    module-path: github.com/jzero-io/jzero-contrib
+    # Choose whether to use the extra rules.
+    # Default: false
+    extra-rules: true

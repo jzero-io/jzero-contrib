@@ -3,9 +3,10 @@ package modx
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/pkg/errors"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/pkg/errors"
 )
 
 // GetGoMod is used to determine whether workDir is a go module project through command `go list -json -m`
@@ -32,13 +33,13 @@ func GetGoMod(workDir string) (*ModuleStruct, error) {
 
 	// 是 go module 项目. mono app 项目, 本身不存在 go.mod 文件
 	// 但请保证在 go.work 中 use 中的第一行是当前项目, 如:
-	//go 1.23.3
+	// go 1.23.3
 	//
-	//use (
+	// use (
 	//	.
 	//	./plugins/business
 	//	./plugins/resource
-	//)
+	// )
 	return &ms[0], nil
 }
 
