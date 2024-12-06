@@ -2,6 +2,7 @@ package condition
 
 import (
 	"fmt"
+	"github.com/huandu/go-assert"
 	"testing"
 
 	"github.com/huandu/go-sqlbuilder"
@@ -182,6 +183,7 @@ func TestGroupBySelect(t *testing.T) {
 	sql, args := builder.Build()
 	fmt.Println(sql)
 	fmt.Println(args)
+	assert.Equal(t, len(args), 9)
 }
 
 func TestGroupBySelectInAdmin(t *testing.T) {
@@ -211,6 +213,7 @@ func TestGroupBySelectInAdmin(t *testing.T) {
 	builder := Select(*sb, cds...)
 
 	sql, args := builder.Build()
+	assert.Equal(t, len(args), 3)
 	fmt.Println(sql)
 	fmt.Println(args)
 
