@@ -56,12 +56,22 @@ func NewChainWithConditions(conditions ...Condition) Chain {
 func (c Chain) addChain(field string, operator Operator, value any, op ...opts.Opt[ChainOperatorOpts]) Chain {
 	o := opts.DefaultApply(op...)
 	c.conditions = append(c.conditions, Condition{
-		Field:        field,
-		Operator:     operator,
-		Value:        value,
-		Skip:         o.Skip,
-		SkipFunc:     o.SkipFunc,
-		OrValuesFunc: o.OrValuesFunc,
+		Field:    field,
+		Operator: operator,
+		Value:    value,
+		Skip:     o.Skip,
+		SkipFunc: o.SkipFunc,
+	})
+	return c
+}
+
+func (c Chain) addChainWithNestedCondition(operator Operator, nestedConditions []Condition, op ...opts.Opt[ChainOperatorOpts]) Chain {
+	o := opts.DefaultApply(op...)
+	c.conditions = append(c.conditions, Condition{
+		Operator:        operator,
+		NestedCondition: nestedConditions,
+		Skip:            o.Skip,
+		SkipFunc:        o.SkipFunc,
 	})
 	return c
 }
@@ -138,6 +148,15 @@ func (c Chain) Offset(value any, op ...opts.Opt[ChainOperatorOpts]) Chain {
 
 func (c Chain) Page(page, pageSize int, op ...opts.Opt[ChainOperatorOpts]) Chain {
 	return c.addChain("", Offset, (page-1)*pageSize, op...).addChain("", Limit, pageSize, op...)
+}
+
+func (c Chain) GroupBy(value any, op ...opts.Opt[ChainOperatorOpts]) Chain {
+	return c.addChain("", GroupBy, value, op...)
+}
+
+// Having construct Having clause with own conditions
+func (c Chain) Having(conditions []Condition, op ...opts.Opt[ChainOperatorOpts]) Chain {
+	return c.addChainWithNestedCondition(Having, conditions, op...)
 }
 
 func (c Chain) Build() []Condition {

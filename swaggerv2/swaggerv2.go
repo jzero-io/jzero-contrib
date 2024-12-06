@@ -23,7 +23,8 @@ type swaggerConfig struct {
 func RegisterRoutes(server *rest.Server, opts ...Opts) {
 	config := &swaggerConfig{
 		SwaggerPath: filepath.Join("desc", "swagger"),
-		SwaggerHost: "https://petstore.swagger.io"}
+		SwaggerHost: "https://petstore.swagger.io",
+	}
 	for _, opt := range opts {
 		opt(config)
 	}
@@ -81,7 +82,6 @@ func uiHandler(config *swaggerConfig) http.HandlerFunc {
 			"SwaggerJsonsPath": swaggerJsonsPath,
 		}, []byte(swaggerTemplateV2))
 		_, _ = rw.Write(uiHTML)
-		return
 	}
 }
 

@@ -74,7 +74,7 @@ func WriteToLocalTemp(ef embed.FS, opts ...Opts) ([]string, error) {
 	return fileList, nil
 }
 
-func createTemp(dir string, path string, data []byte) (*os.File, error) {
+func createTemp(dir, path string, data []byte) (*os.File, error) {
 	tmpFile, err := os.CreateTemp(dir, fmt.Sprintf("*%s", filepath.Ext(path)))
 	if err != nil {
 		return nil, err

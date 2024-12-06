@@ -2,6 +2,7 @@ package nullx
 
 import (
 	"database/sql"
+
 	"github.com/guregu/null/v5"
 )
 

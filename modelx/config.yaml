@@ -1,0 +1,6 @@
+databasetype: mysql11111
+Mysql:
+  Host: 127.0.0.1
+  USernaMe: hhh
+sqlite:
+  path: testPath

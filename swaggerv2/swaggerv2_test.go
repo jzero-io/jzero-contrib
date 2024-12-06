@@ -15,5 +15,5 @@ func TestParseSwaggerV2Template(t *testing.T) {
 		"SwaggerHost":      "https://petstore.swagger.io",
 		"SwaggerJsonsPath": []string{"swagger.json", "swagger2.json"},
 	})
-	fmt.Println(string(buf.Bytes()))
+	fmt.Println(buf.String())
 }
