@@ -22,8 +22,8 @@ jobs:
 
       - name: Install Tool
         run: |
-          go install
           go install github.com/fsgo/go_fmt/cmd/gorgeous@latest
+          go mod tidy
 
       - name: format go
         run: |
