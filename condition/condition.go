@@ -107,78 +107,6 @@ func buildExpr(cond *sqlbuilder.Cond, field string, operator Operator, value any
 	return ""
 }
 
-func buildExprForSelectBuilder(sb *sqlbuilder.SelectBuilder, field string, operator Operator, value any) string {
-	switch operator {
-	case Equal:
-		return sb.Equal(field, value)
-	case NotEqual:
-		return sb.NotEqual(field, value)
-	case GreaterThan:
-		return sb.GreaterThan(field, value)
-	case LessThan:
-		return sb.LessThan(field, value)
-	case GreaterEqualThan:
-		return sb.GreaterEqualThan(field, value)
-	case LessEqualThan:
-		return sb.LessEqualThan(field, value)
-	case In:
-		if len(castx.ToSlice(value)) > 0 {
-			return sb.In(field, castx.ToSlice(value)...)
-		}
-	case NotIn:
-		if len(castx.ToSlice(value)) > 0 {
-			return sb.NotIn(field, castx.ToSlice(value)...)
-		}
-	case Like:
-		return sb.Like(field, value)
-	case NotLike:
-		return sb.NotLike(field, value)
-	case Between:
-		v := castx.ToSlice(value)
-		if len(v) == 2 {
-			return sb.Between(field, v[0], v[1])
-		}
-	case NotBetween:
-		v := castx.ToSlice(value)
-		if len(v) == 2 {
-			return sb.NotBetween(field, v[0], v[1])
-		}
-	}
-	return ""
-}
-
-func havingClause(sb *sqlbuilder.SelectBuilder, conditions ...Condition) []string {
-	var clauses []string
-	for _, c := range conditions {
-		if c.SkipFunc != nil {
-			c.Skip = c.SkipFunc()
-		}
-		if c.Skip {
-			continue
-		}
-		if c.Or {
-			if c.OrValuesFunc != nil {
-				c.OrValues = c.OrValuesFunc()
-			}
-			var expr []string
-			for i, field := range c.OrFields {
-				if or := buildExprForSelectBuilder(sb, field, c.OrOperators[i], c.OrValues[i]); or != "" {
-					expr = append(expr, or)
-				}
-			}
-			if len(expr) > 0 {
-				clauses = append(clauses, sb.Or(expr...))
-			}
-		} else {
-			if c.ValueFunc != nil {
-				c.Value = c.ValueFunc()
-			}
-			clauses = append(clauses, buildExprForSelectBuilder(sb, c.Field, c.Operator, c.Value))
-		}
-	}
-	return clauses
-}
-
 func whereClause(conditions ...Condition) *sqlbuilder.WhereClause {
 	clause := sqlbuilder.NewWhereClause()
 	cond := sqlbuilder.NewCond()
@@ -241,10 +169,9 @@ func Select(sb sqlbuilder.SelectBuilder, conditions ...Condition) sqlbuilder.Sel
 				sb.GroupBy(cast.ToStringSlice(castx.ToSlice(c.Value))...)
 			}
 		case Having:
-			subClause := havingClause(&sb, c.NestedCondition...)
-			if len(subClause) > 0 {
-				sb.Having(subClause...)
-			}
+			subSb := sqlbuilder.NewSelectBuilder()
+			subClause := Select(*subSb, c.NestedCondition...)
+			sb = *sb.Having(strings.TrimPrefix(subClause.String(), "WHERE "))
 		}
 	}
 	if clause != nil {
