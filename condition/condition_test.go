@@ -188,9 +188,6 @@ func TestGroupBySelectInAdmin(t *testing.T) {
 	conn := sqlx.NewMysql("root:123456@tcp(localhost:3306)/jzeroadmin?charset=utf8mb4&parseTime=True&loc=Local")
 	sqlbuilder.DefaultFlavor = sqlbuilder.MySQL
 
-	var values []any
-	values = append(values, []int{24, 48}, []int{170, 175})
-
 	cds := New(Condition{
 		Field:    "menu_id",
 		Operator: GreaterThan,

@@ -82,7 +82,6 @@ func uiHandler(config *swaggerConfig) http.HandlerFunc {
 			"SwaggerJsonsPath": swaggerJsonsPath,
 		}, []byte(swaggerTemplateV2))
 		_, _ = rw.Write(uiHTML)
-		return
 	}
 }
 

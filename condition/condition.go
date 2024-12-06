@@ -36,10 +36,13 @@ const (
 )
 
 type Condition struct {
-	Skip     bool
+	// Skip indicates whether the condition is effective.
+	Skip bool
+
+	// SkipFunc The priority is higher than Skip.
 	SkipFunc func() bool
 
-	// or condition
+	// Or indicates an or condition
 	Or bool
 
 	OrOperators  []Operator
@@ -47,11 +50,13 @@ type Condition struct {
 	OrValues     []any
 	OrValuesFunc func() []any
 
-	// and condition
+	// Field for default and condition
 	Field string
 
-	Operator  Operator
-	Value     any
+	Operator Operator
+	Value    any
+
+	// ValueFunc The priority is higher than Value.
 	ValueFunc func() any
 
 	// NestedCondition Only support for having clause
