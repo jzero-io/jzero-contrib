@@ -1,4 +1,4 @@
-package sync
+package cache
 
 import (
 	"context"
@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/errorx"
-
-	"github.com/jzero-io/jzero-contrib/cache"
 )
 
 type (
@@ -24,8 +22,12 @@ type (
 	}
 )
 
-// New creates an instance of SyncMap cache driver
-func New(errNotFound error) cache.Cache {
+func (sm *syncMap) SetNoExpireCtx(ctx context.Context, key string, val any) error {
+	return sm.SetCtx(ctx, key, val)
+}
+
+// NewSyncMap creates an instance of SyncMap cache driver
+func NewSyncMap(errNotFound error) Cache {
 	return &syncMap{
 		storage:     &sync.Map{},
 		errNotFound: errNotFound,
