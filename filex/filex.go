@@ -26,7 +26,7 @@ func IsYamlFile(path string) bool {
 func EnsureDirExists(dirPath string) error {
 	info, err := os.Stat(dirPath)
 	if os.IsNotExist(err) {
-		err = os.MkdirAll(dirPath, 0755)
+		err = os.MkdirAll(dirPath, 0o755)
 		if err != nil {
 			return fmt.Errorf("failed to create directory: %w", err)
 		}
