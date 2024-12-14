@@ -54,6 +54,15 @@ func Error(code Code) error {
 	return Error(http.StatusInternalServerError)
 }
 
+func ErrorMessage(code Code, message string) error {
+	status, ok := statusMap[int(code)]
+	if ok {
+		status.message = message
+		return errors.WithStack(status)
+	}
+	return Error(http.StatusInternalServerError)
+}
+
 func Wrap(code Code, err error, extra ...any) error {
 	status, ok := statusMap[int(code)]
 	if ok {
