@@ -8,7 +8,7 @@ import (
 )
 
 type TestSt struct {
-	Name string `json:","`
+	Name string `json:"name,"`
 }
 
 func TestLocalFsNotify(t *testing.T) {
