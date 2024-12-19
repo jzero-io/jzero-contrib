@@ -29,15 +29,4 @@ func TestLocalFsNotify(t *testing.T) {
 		panic(err)
 	}
 	println(v.Name)
-
-	// 如果想监听配置变化，可以添加 listener
-	cc.AddListener(func() {
-		v, err := cc.GetConfig()
-		if err != nil {
-			panic(err)
-		}
-		println(v.Name)
-	})
-
-	select {}
 }
