@@ -2,6 +2,7 @@ package dynamic_conf
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/zeromicro/go-zero/core/configcenter/subscriber"
@@ -35,7 +36,9 @@ func (lf *FsNotify) AddListener(listener func()) error {
 				if !ok {
 					return
 				}
-				if event.Has(fsnotify.Write) {
+				if (event.Has(fsnotify.Write) || event.Has(fsnotify.Rename)) &&
+					filepath.ToSlash(filepath.Clean(event.Name)) == filepath.Clean(filepath.ToSlash(lf.Path)) {
+					logx.Infof("listen %s %s event", event.Name, event.Op)
 					listener()
 				}
 			case err, ok := <-lf.Watcher.Errors:
@@ -47,7 +50,8 @@ func (lf *FsNotify) AddListener(listener func()) error {
 		}
 	}()
 
-	if err := lf.Watcher.Add(lf.Path); err != nil {
+	// see: https://github.com/fsnotify/fsnotify/issues/363
+	if err := lf.Watcher.Add(filepath.Dir(lf.Path)); err != nil {
 		return err
 	}
 	return nil
