@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/a8m/envsubst"
-	"github.com/jaronnie/genius"
 	configurator "github.com/zeromicro/go-zero/core/configcenter"
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -43,15 +41,7 @@ func TestEnvsubstYaml(t *testing.T) {
 	if err != nil {
 		log.Fatalf("envsubst error: %v", err)
 	}
-	g, err := genius.NewFromType(data, filepath.Ext("testdata/etc.yaml"))
-	if err != nil {
-		panic(err)
-	}
-	fileBytes, err := g.EncodeToType(filepath.Ext("testdata/etc.yaml"))
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(fileBytes))
+	fmt.Println(string(data))
 }
 
 func TestEnvsubstJson(t *testing.T) {
@@ -60,13 +50,5 @@ func TestEnvsubstJson(t *testing.T) {
 	if err != nil {
 		log.Fatalf("envsubst error: %v", err)
 	}
-	g, err := genius.NewFromType(data, filepath.Ext("testdata/etc.json"))
-	if err != nil {
-		panic(err)
-	}
-	fileBytes, err := g.EncodeToType(filepath.Ext("testdata/etc.json"))
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(fileBytes))
+	fmt.Println(string(data))
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/a8m/envsubst"
 	"github.com/eddieowens/opts"
 	"github.com/fsnotify/fsnotify"
-	"github.com/jaronnie/genius"
 	"github.com/zeromicro/go-zero/core/configcenter/subscriber"
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -88,17 +87,10 @@ func (f *FsNotify) Value() (string, error) {
 	}
 
 	if f.options.UseEnv {
-		bytes, err := envsubst.Bytes(file)
+		file, err = envsubst.Bytes(file)
 		if err != nil {
 			return "", err
 		}
-
-		g, err := genius.NewFromType(bytes, filepath.Ext(f.path))
-		if err != nil {
-			return "", err
-		}
-		bytes, err = g.EncodeToType(filepath.Ext(f.path))
-		return string(bytes), nil
 	}
 
 	return string(file), nil
