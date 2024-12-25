@@ -1,16 +1,16 @@
 module github.com/jzero-io/jzero-contrib
 
-go 1.21.4
-
-toolchain go1.22.3
+go 1.22.3
 
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3
+	github.com/a8m/envsubst v1.4.2
 	github.com/eddieowens/opts v0.1.0
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/guregu/null/v5 v5.0.0
 	github.com/huandu/go-assert v1.1.6
 	github.com/huandu/go-sqlbuilder v1.28.0
+	github.com/jaronnie/genius v0.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cast v1.5.1
 	github.com/zeromicro/go-zero v1.7.4
@@ -46,6 +46,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
+	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/prometheus/client_golang v1.20.5 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
@@ -72,13 +73,14 @@ require (
 	go.uber.org/automaxprocs v1.6.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
-	golang.org/x/crypto v0.29.0 // indirect
-	golang.org/x/net v0.31.0 // indirect
-	golang.org/x/sys v0.27.0 // indirect
-	golang.org/x/text v0.20.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240711142825-46eb208f015d // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240701130421-f6361c86f094 // indirect
 	google.golang.org/grpc v1.65.0 // indirect
 	google.golang.org/protobuf v1.35.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

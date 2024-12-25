@@ -4,7 +4,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/a8m/envsubst"
+	"github.com/eddieowens/opts"
 	"github.com/fsnotify/fsnotify"
+	"github.com/jaronnie/genius"
 	"github.com/zeromicro/go-zero/core/configcenter/subscriber"
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -12,36 +15,57 @@ import (
 var _ subscriber.Subscriber = (*FsNotify)(nil)
 
 type FsNotify struct {
-	Path string `json:"path"`
+	path string
+
+	// options
+	options FsNotifyOpts
+
 	*fsnotify.Watcher
 }
 
-func NewFsNotify(path string) (*FsNotify, error) {
+type FsNotifyOpts struct {
+	UseEnv bool
+}
+
+func (opts FsNotifyOpts) DefaultOptions() FsNotifyOpts {
+	return FsNotifyOpts{}
+}
+
+func WithUseEnv(useEnv bool) opts.Opt[FsNotifyOpts] {
+	return func(o *FsNotifyOpts) {
+		o.UseEnv = useEnv
+	}
+}
+
+func NewFsNotify(path string, op ...opts.Opt[FsNotifyOpts]) (*FsNotify, error) {
+	o := opts.DefaultApply(op...)
+
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err
 	}
 
 	return &FsNotify{
-		Path:    path,
+		path:    path,
 		Watcher: watcher,
+		options: o,
 	}, nil
 }
 
-func (lf *FsNotify) AddListener(listener func()) error {
+func (f *FsNotify) AddListener(listener func()) error {
 	go func() {
 		for {
 			select {
-			case event, ok := <-lf.Watcher.Events:
+			case event, ok := <-f.Watcher.Events:
 				if !ok {
 					return
 				}
 				if (event.Has(fsnotify.Write) || event.Has(fsnotify.Rename)) &&
-					filepath.ToSlash(filepath.Clean(event.Name)) == filepath.Clean(filepath.ToSlash(lf.Path)) {
+					filepath.ToSlash(filepath.Clean(event.Name)) == filepath.Clean(filepath.ToSlash(f.path)) {
 					logx.Infof("listen %s %s event", event.Name, event.Op)
 					listener()
 				}
-			case err, ok := <-lf.Watcher.Errors:
+			case err, ok := <-f.Watcher.Errors:
 				if !ok {
 					return
 				}
@@ -51,13 +75,31 @@ func (lf *FsNotify) AddListener(listener func()) error {
 	}()
 
 	// see: https://github.com/fsnotify/fsnotify/issues/363
-	if err := lf.Watcher.Add(filepath.Dir(lf.Path)); err != nil {
+	if err := f.Watcher.Add(filepath.Dir(f.path)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (lf *FsNotify) Value() (string, error) {
-	file, err := os.ReadFile(lf.Path)
-	return string(file), err
+func (f *FsNotify) Value() (string, error) {
+	file, err := os.ReadFile(f.path)
+	if err != nil {
+		return "", err
+	}
+
+	if f.options.UseEnv {
+		bytes, err := envsubst.Bytes(file)
+		if err != nil {
+			return "", err
+		}
+
+		g, err := genius.NewFromType(bytes, filepath.Ext(f.path))
+		if err != nil {
+			return "", err
+		}
+		bytes, err = g.EncodeToType(filepath.Ext(f.path))
+		return string(bytes), nil
+	}
+
+	return string(file), nil
 }

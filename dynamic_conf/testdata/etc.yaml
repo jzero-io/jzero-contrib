@@ -1,1 +1,2 @@
-Name: jzero
+name: jzero
+databaseType: ${DatabaseType}
