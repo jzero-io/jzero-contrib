@@ -16,6 +16,14 @@ func FileExists(path string) bool {
 	return !info.IsDir()
 }
 
+func DirExists(path string) bool {
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return info.IsDir()
+}
+
 // IsYamlFile check YAML file
 func IsYamlFile(path string) bool {
 	ext := strings.ToLower(filepath.Ext(path))
