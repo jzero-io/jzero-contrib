@@ -82,27 +82,19 @@ func buildExpr(cond *sqlbuilder.Cond, field string, operator Operator, value any
 	case LessEqualThan:
 		return cond.LessEqualThan(field, value)
 	case In:
-		if len(castx.ToSlice(value)) > 0 {
-			return cond.In(field, castx.ToSlice(value)...)
-		}
+		return cond.In(field, castx.ToSlice(value)...)
 	case NotIn:
-		if len(castx.ToSlice(value)) > 0 {
-			return cond.NotIn(field, castx.ToSlice(value)...)
-		}
+		return cond.NotIn(field, castx.ToSlice(value)...)
 	case Like:
 		return cond.Like(field, value)
 	case NotLike:
 		return cond.NotLike(field, value)
 	case Between:
 		v := castx.ToSlice(value)
-		if len(v) == 2 {
-			return cond.Between(field, v[0], v[1])
-		}
+		return cond.Between(field, v[0], v[1])
 	case NotBetween:
 		v := castx.ToSlice(value)
-		if len(v) == 2 {
-			return cond.NotBetween(field, v[0], v[1])
-		}
+		return cond.NotBetween(field, v[0], v[1])
 	}
 	return ""
 }
@@ -122,27 +114,19 @@ func buildExprForSelectBuilder(sb *sqlbuilder.SelectBuilder, field string, opera
 	case LessEqualThan:
 		return sb.LessEqualThan(field, value)
 	case In:
-		if len(castx.ToSlice(value)) > 0 {
-			return sb.In(field, castx.ToSlice(value)...)
-		}
+		return sb.In(field, castx.ToSlice(value)...)
 	case NotIn:
-		if len(castx.ToSlice(value)) > 0 {
-			return sb.NotIn(field, castx.ToSlice(value)...)
-		}
+		return sb.NotIn(field, castx.ToSlice(value)...)
 	case Like:
 		return sb.Like(field, value)
 	case NotLike:
 		return sb.NotLike(field, value)
 	case Between:
 		v := castx.ToSlice(value)
-		if len(v) == 2 {
-			return sb.Between(field, v[0], v[1])
-		}
+		return sb.Between(field, v[0], v[1])
 	case NotBetween:
 		v := castx.ToSlice(value)
-		if len(v) == 2 {
-			return sb.NotBetween(field, v[0], v[1])
-		}
+		return sb.NotBetween(field, v[0], v[1])
 	}
 	return ""
 }
@@ -233,13 +217,9 @@ func Select(sb sqlbuilder.SelectBuilder, conditions ...Condition) sqlbuilder.Sel
 		case Offset:
 			sb.Offset(cast.ToInt(c.Value))
 		case OrderBy:
-			if len(castx.ToSlice(c.Value)) > 0 {
-				sb.OrderBy(cast.ToStringSlice(castx.ToSlice(c.Value))...)
-			}
+			sb.OrderBy(cast.ToStringSlice(castx.ToSlice(c.Value))...)
 		case GroupBy:
-			if len(castx.ToSlice(c.Value)) > 0 {
-				sb.GroupBy(cast.ToStringSlice(castx.ToSlice(c.Value))...)
-			}
+			sb.GroupBy(cast.ToStringSlice(castx.ToSlice(c.Value))...)
 		case Having:
 			subClause := havingClause(&sb, c.NestedCondition...)
 			if len(subClause) > 0 {
@@ -296,9 +276,7 @@ func Delete(builder sqlbuilder.DeleteBuilder, conditions ...Condition) sqlbuilde
 		case Limit:
 			builder.Limit(cast.ToInt(c.Value))
 		case OrderBy:
-			if len(castx.ToSlice(c.Value)) > 0 {
-				builder.OrderBy(cast.ToStringSlice(castx.ToSlice(c.Value))...)
-			}
+			builder.OrderBy(cast.ToStringSlice(castx.ToSlice(c.Value))...)
 		}
 	}
 	if clause != nil {

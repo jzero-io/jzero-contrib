@@ -23,3 +23,18 @@ func TestChain(t *testing.T) {
 	fmt.Println(sql)
 	fmt.Println(args)
 }
+
+func TestChain2(t *testing.T) {
+	sb := sqlbuilder.NewDeleteBuilder()
+	sb.DeleteFrom("user")
+	chain := NewChain()
+	conds := chain.
+		Like("name", "%"+"j"+"%").
+		In("id", []int{}).
+		Build()
+	builder := Delete(*sb, conds...)
+	sql, args := builder.Build()
+	fmt.Println(sql)
+	fmt.Println(args)
+	fmt.Println(builder.String())
+}
