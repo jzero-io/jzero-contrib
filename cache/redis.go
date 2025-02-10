@@ -23,6 +23,27 @@ func (c redisNode) SetNoExpireCtx(ctx context.Context, key string, val any) erro
 	return c.rds.SetCtx(ctx, key, string(data))
 }
 
+func (c redisNode) GetPrefixKeysCtx(ctx context.Context, keyPrefix string) ([]string, error) {
+	var (
+		cursor  uint64
+		allKeys []string
+		err     error
+	)
+
+	for {
+		var keys []string
+		keys, cursor, err = c.rds.ScanCtx(ctx, cursor, keyPrefix+"*", 100)
+		if err != nil {
+			return nil, err
+		}
+		allKeys = append(allKeys, keys...)
+		if cursor == 0 {
+			break
+		}
+	}
+	return allKeys, nil
+}
+
 func (c redisNode) Del(keys ...string) error {
 	return c.node.Del(keys...)
 }

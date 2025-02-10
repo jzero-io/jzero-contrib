@@ -22,6 +22,24 @@ type (
 	}
 )
 
+func (sm *syncMap) GetPrefixKeysCtx(ctx context.Context, prefix string) ([]string, error) {
+	var allKeys []string
+
+	sm.storage.Range(func(key, value any) bool {
+		keyStr, ok := key.(string)
+		if !ok {
+			return true
+		}
+
+		if len(keyStr) >= len(prefix) && keyStr[:len(prefix)] == prefix {
+			allKeys = append(allKeys, keyStr)
+		}
+		return true
+	})
+
+	return allKeys, nil
+}
+
 func (sm *syncMap) SetNoExpireCtx(ctx context.Context, key string, val any) error {
 	return sm.SetCtx(ctx, key, val)
 }
