@@ -32,7 +32,7 @@ const (
 	NotBetween       Operator = "NOT BETWEEN"
 	OrderBy          Operator = "ORDER BY"
 	GroupBy          Operator = "GROUP BY"
-	Having           Operator = "HAVING"
+	Join             Operator = "JOIN"
 )
 
 type Condition struct {
@@ -59,8 +59,14 @@ type Condition struct {
 	// ValueFunc The priority is higher than Value.
 	ValueFunc func() any
 
-	// NestedCondition Only support for having clause
-	NestedCondition []Condition
+	// JoinCondition
+	JoinCondition
+}
+
+type JoinCondition struct {
+	Option sqlbuilder.JoinOption
+	Table  string
+	OnExpr []string
 }
 
 func New(conditions ...Condition) []Condition {
@@ -97,70 +103,6 @@ func buildExpr(cond *sqlbuilder.Cond, field string, operator Operator, value any
 		return cond.NotBetween(field, v[0], v[1])
 	}
 	return ""
-}
-
-func buildExprForSelectBuilder(sb *sqlbuilder.SelectBuilder, field string, operator Operator, value any) string {
-	switch operator {
-	case Equal:
-		return sb.Equal(field, value)
-	case NotEqual:
-		return sb.NotEqual(field, value)
-	case GreaterThan:
-		return sb.GreaterThan(field, value)
-	case LessThan:
-		return sb.LessThan(field, value)
-	case GreaterEqualThan:
-		return sb.GreaterEqualThan(field, value)
-	case LessEqualThan:
-		return sb.LessEqualThan(field, value)
-	case In:
-		return sb.In(field, castx.ToSlice(value)...)
-	case NotIn:
-		return sb.NotIn(field, castx.ToSlice(value)...)
-	case Like:
-		return sb.Like(field, value)
-	case NotLike:
-		return sb.NotLike(field, value)
-	case Between:
-		v := castx.ToSlice(value)
-		return sb.Between(field, v[0], v[1])
-	case NotBetween:
-		v := castx.ToSlice(value)
-		return sb.NotBetween(field, v[0], v[1])
-	}
-	return ""
-}
-
-func havingClause(sb *sqlbuilder.SelectBuilder, conditions ...Condition) []string {
-	var clauses []string
-	for _, c := range conditions {
-		if c.SkipFunc != nil {
-			c.Skip = c.SkipFunc()
-		}
-		if c.Skip {
-			continue
-		}
-		if c.Or {
-			if c.OrValuesFunc != nil {
-				c.OrValues = c.OrValuesFunc()
-			}
-			var expr []string
-			for i, field := range c.OrFields {
-				if or := buildExprForSelectBuilder(sb, field, c.OrOperators[i], c.OrValues[i]); or != "" {
-					expr = append(expr, or)
-				}
-			}
-			if len(expr) > 0 {
-				clauses = append(clauses, sb.Or(expr...))
-			}
-		} else {
-			if c.ValueFunc != nil {
-				c.Value = c.ValueFunc()
-			}
-			clauses = append(clauses, buildExprForSelectBuilder(sb, c.Field, c.Operator, c.Value))
-		}
-	}
-	return clauses
 }
 
 func whereClause(conditions ...Condition) *sqlbuilder.WhereClause {
@@ -220,11 +162,8 @@ func Select(sb sqlbuilder.SelectBuilder, conditions ...Condition) sqlbuilder.Sel
 			sb.OrderBy(cast.ToStringSlice(castx.ToSlice(c.Value))...)
 		case GroupBy:
 			sb.GroupBy(cast.ToStringSlice(castx.ToSlice(c.Value))...)
-		case Having:
-			subClause := havingClause(&sb, c.NestedCondition...)
-			if len(subClause) > 0 {
-				sb.Having(subClause...)
-			}
+		case Join:
+			sb.JoinWithOption(c.JoinCondition.Option, c.JoinCondition.Table, cast.ToStringSlice(castx.ToSlice(c.JoinCondition.OnExpr))...)
 		}
 	}
 	if clause != nil {

@@ -38,3 +38,16 @@ func TestChain2(t *testing.T) {
 	fmt.Println(args)
 	fmt.Println(builder.String())
 }
+
+func TestChainJoin(t *testing.T) {
+	sb := sqlbuilder.NewSelectBuilder().Select("user.name", "user.age").From("user")
+	chain := NewChain()
+	conds := chain.
+		Equal("user.field", "value2").
+		Join(sqlbuilder.InnerJoin, "user_info", "user.id = user_info.user_id").
+		Build()
+	builder := Select(*sb, conds...)
+	sql, args := builder.Build()
+	fmt.Println(sql)
+	fmt.Println(args)
+}

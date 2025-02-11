@@ -2,6 +2,7 @@ package condition
 
 import (
 	"github.com/eddieowens/opts"
+	"github.com/huandu/go-sqlbuilder"
 )
 
 type Chain struct {
@@ -61,17 +62,6 @@ func (c Chain) addChain(field string, operator Operator, value any, op ...opts.O
 		Value:    value,
 		Skip:     o.Skip,
 		SkipFunc: o.SkipFunc,
-	})
-	return c
-}
-
-func (c Chain) addChainWithNestedCondition(operator Operator, nestedConditions []Condition, op ...opts.Opt[ChainOperatorOpts]) Chain {
-	o := opts.DefaultApply(op...)
-	c.conditions = append(c.conditions, Condition{
-		Operator:        operator,
-		NestedCondition: nestedConditions,
-		Skip:            o.Skip,
-		SkipFunc:        o.SkipFunc,
 	})
 	return c
 }
@@ -154,9 +144,16 @@ func (c Chain) GroupBy(value any, op ...opts.Opt[ChainOperatorOpts]) Chain {
 	return c.addChain("", GroupBy, value, op...)
 }
 
-// Having construct Having clause with own conditions
-func (c Chain) Having(conditions []Condition, op ...opts.Opt[ChainOperatorOpts]) Chain {
-	return c.addChainWithNestedCondition(Having, conditions, op...)
+func (c Chain) Join(option sqlbuilder.JoinOption, table string, onExpr ...string) Chain {
+	c.conditions = append(c.conditions, Condition{
+		Operator: Join,
+		JoinCondition: JoinCondition{
+			Table:  table,
+			OnExpr: onExpr,
+			Option: option,
+		},
+	})
+	return c
 }
 
 func (c Chain) Build() []Condition {
