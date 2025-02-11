@@ -3,7 +3,9 @@ package cache
 import (
 	"context"
 	"testing"
+	"time"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,4 +25,25 @@ func TestSyncMap(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, []string{"JWT_ADMIN_AUTH:1:abc", "JWT_ADMIN_AUTH:1:def", "JWT_ADMIN_AUTH:1:ghi"}, keys)
 	})
+}
+
+func TestSyncMapExpireCtx(t *testing.T) {
+	r, err := miniredis.Run()
+	assert.NoError(t, err)
+	defer r.Close()
+
+	cache := NewSyncMap(errors.New("not found"))
+
+	err = cache.SetWithExpireCtx(context.Background(), "JWT_ADMIN_AUTH:1:abc", "abc", time.Duration(5)*time.Second)
+	assert.NoError(t, err)
+
+	var val any
+	err = cache.Get("JWT_ADMIN_AUTH:1:abc", &val)
+	assert.NoError(t, err)
+	assert.Equal(t, "abc", val)
+
+	time.Sleep(time.Second * 6)
+	var newVal any
+	err = cache.Get("JWT_ADMIN_AUTH:1:abc", &newVal)
+	assert.Error(t, err)
 }

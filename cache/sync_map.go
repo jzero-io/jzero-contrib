@@ -22,6 +22,16 @@ type (
 	}
 )
 
+func (sm *syncMap) ExpireCtx(ctx context.Context, key string, expire time.Duration) error {
+	item, err := sm.read(key)
+	if err != nil {
+		return err
+	}
+	item.duration = time.Now().Unix() + int64(expire.Seconds())
+	sm.storage.Store(key, item)
+	return nil
+}
+
 func (sm *syncMap) GetPrefixKeysCtx(ctx context.Context, prefix string) ([]string, error) {
 	var allKeys []string
 

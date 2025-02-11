@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"math"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/jsonx"
@@ -13,6 +14,10 @@ import (
 type redisNode struct {
 	rds  *redis.Redis
 	node zerocache.Cache
+}
+
+func (c redisNode) ExpireCtx(ctx context.Context, key string, expire time.Duration) error {
+	return c.rds.ExpireCtx(ctx, key, int(math.Ceil(expire.Seconds())))
 }
 
 func (c redisNode) SetNoExpireCtx(ctx context.Context, key string, val any) error {
