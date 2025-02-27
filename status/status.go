@@ -95,6 +95,10 @@ func (e Status) Error() string {
 	return message
 }
 
+func (e Status) Unwrap() error {
+	return e.err
+}
+
 func (e Status) Extra() any {
 	return e.extra
 }
