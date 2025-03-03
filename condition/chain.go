@@ -166,9 +166,9 @@ func (c Chain) Build() []Condition {
 	return c.conditions
 }
 
-func (c Chain) AddWhereClause(clause *sqlbuilder.WhereClause) Chain {
+func (c Chain) WhereClause(whereClause *sqlbuilder.WhereClause) Chain {
 	c.conditions = append(c.conditions, Condition{
-		Raw: clause,
+		WhereClause: whereClause,
 	})
 	return c
 }

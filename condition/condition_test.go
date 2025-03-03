@@ -155,7 +155,7 @@ func TestRawWhereClause(t *testing.T) {
 		))
 
 	cds := New(Condition{
-		Raw: rawWhereClause,
+		WhereClause: rawWhereClause,
 	}, Condition{
 		Field:    "field_with_jzero",
 		Value:    123,
