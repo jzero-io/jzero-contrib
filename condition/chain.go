@@ -165,3 +165,10 @@ func (c Chain) Join(option sqlbuilder.JoinOption, table string, onExpr ...string
 func (c Chain) Build() []Condition {
 	return c.conditions
 }
+
+func (c Chain) AddWhereClause(clause *sqlbuilder.WhereClause) Chain {
+	c.conditions = append(c.conditions, Condition{
+		Raw: clause,
+	})
+	return c
+}

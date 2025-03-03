@@ -61,6 +61,8 @@ type Condition struct {
 
 	// JoinCondition
 	JoinCondition
+
+	Raw *sqlbuilder.WhereClause
 }
 
 type JoinCondition struct {
@@ -114,6 +116,10 @@ func whereClause(conditions ...Condition) *sqlbuilder.WhereClause {
 			c.Skip = c.SkipFunc()
 		}
 		if c.Skip {
+			continue
+		}
+		if c.Raw != nil {
+			clause.AddWhereClause(c.Raw)
 			continue
 		}
 		if c.Or {
