@@ -46,12 +46,18 @@ func WithOrValuesFunc(valueFunc func() []any) opts.Opt[ChainOperatorOpts] {
 	}
 }
 
-func NewChain() Chain {
-	return Chain{}
+func NewChain(conditions ...Condition) Chain {
+	return Chain{conditions: conditions}
 }
 
+// Deprecated: Use NewChain instead
 func NewChainWithConditions(conditions ...Condition) Chain {
 	return Chain{conditions: conditions}
+}
+
+func (c Chain) AddCondition(condition Condition) Chain {
+	c.conditions = append(c.conditions, condition)
+	return c
 }
 
 func (c Chain) addChain(field string, operator Operator, value any, op ...opts.Opt[ChainOperatorOpts]) Chain {
