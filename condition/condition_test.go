@@ -135,3 +135,37 @@ func TestWhereClause(t *testing.T) {
 	fmt.Println(statement)
 	fmt.Println(args)
 }
+
+func TestRawWhereClause(t *testing.T) {
+	sqlbuilder.DefaultFlavor = sqlbuilder.MySQL
+
+	rawWhereClause := sqlbuilder.NewWhereClause()
+
+	cond := sqlbuilder.NewCond()
+	rawWhereClause.AddWhereExpr(cond.Args,
+		cond.Or(
+			cond.And(
+				cond.EQ("a", 1),
+				cond.EQ("b", 2),
+			),
+			cond.And(
+				cond.EQ("c", 3),
+				cond.EQ("d", 4),
+			),
+		))
+
+	cds := New(Condition{
+		WhereClause: rawWhereClause,
+	}, Condition{
+		Field:    "field_with_jzero",
+		Value:    123,
+		Operator: Equal,
+	})
+
+	sb := sqlbuilder.NewSelectBuilder().Select("name", "age", "height").From("user")
+	builder := Select(*sb, cds...)
+
+	sql, args := builder.Build()
+	fmt.Println(sql)
+	fmt.Println(args)
+}
