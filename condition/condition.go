@@ -90,8 +90,16 @@ func buildExpr(cond *sqlbuilder.Cond, field string, operator Operator, value any
 	case LessEqualThan:
 		return cond.LessEqualThan(field, value)
 	case In:
+		if len(castx.ToSlice(value)) == 0 {
+			// if value is empty, force placeholder nil to avoid sql error
+			return cond.In(field, nil)
+		}
 		return cond.In(field, castx.ToSlice(value)...)
 	case NotIn:
+		if len(castx.ToSlice(value)) == 0 {
+			// if value is empty, force placeholder nil to avoid sql error
+			return cond.NotIn(field, nil)
+		}
 		return cond.NotIn(field, castx.ToSlice(value)...)
 	case Like:
 		return cond.Like(field, value)

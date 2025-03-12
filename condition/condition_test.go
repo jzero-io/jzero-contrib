@@ -169,3 +169,31 @@ func TestRawWhereClause(t *testing.T) {
 	fmt.Println(sql)
 	fmt.Println(args)
 }
+
+func TestChain_In(t *testing.T) {
+	t.Run("test", func(t *testing.T) {
+		sqlbuilder.DefaultFlavor = sqlbuilder.MySQL
+		sb := sqlbuilder.NewSelectBuilder().Select("id").From("users")
+		builder := Select(*sb, Condition{
+			Field:    "id",
+			Operator: In,
+			Value:    []int{1},
+		})
+
+		sql, args := builder.Build()
+		fmt.Println(sql, args)
+	})
+
+	t.Run("test2", func(t *testing.T) {
+		sqlbuilder.DefaultFlavor = sqlbuilder.MySQL
+		sb := sqlbuilder.NewSelectBuilder().Select("id").From("users")
+		builder := Select(*sb, Condition{
+			Field:    "id",
+			Operator: In,
+			Value:    []int{},
+		})
+
+		sql, args := builder.Build()
+		fmt.Println(sql, args)
+	})
+}
