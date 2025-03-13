@@ -52,3 +52,28 @@ func TestEnvsubstJson(t *testing.T) {
 	}
 	fmt.Println(string(data))
 }
+
+func TestLocalFsNotifyWithUseKey(t *testing.T) {
+	logx.MustSetup(logx.LogConf{
+		Level:    "info",
+		Encoding: "plain",
+	})
+
+	type Sslvpn struct {
+		Core string `json:"core,"`
+	}
+
+	ss, err := NewFsNotify("testdata/etc.yaml", WithUseEnv(true), WithUseKey("plugins.sslvpn"))
+	if err != nil {
+		panic(err)
+	}
+	cc := configurator.MustNewConfigCenter[Sslvpn](configurator.Config{
+		Type: "yaml", // 配置值类型：json,yaml,toml
+	}, ss)
+
+	v, err := cc.GetConfig()
+	if err != nil {
+		panic(err)
+	}
+	println(v.Core)
+}

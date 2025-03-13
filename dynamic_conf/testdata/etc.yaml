@@ -1,2 +1,6 @@
 name: jzero
 databaseType: ${DatabaseType}
+
+plugins:
+  sslvpn:
+    core: localhost:8001

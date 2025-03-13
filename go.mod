@@ -11,6 +11,7 @@ require (
 	github.com/guregu/null/v5 v5.0.0
 	github.com/huandu/go-assert v1.1.6
 	github.com/huandu/go-sqlbuilder v1.28.0
+	github.com/jaronnie/genius v0.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cast v1.5.1
 	github.com/stretchr/testify v1.9.0
@@ -48,6 +49,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
+	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.20.5 // indirect

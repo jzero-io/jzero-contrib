@@ -7,6 +7,7 @@ import (
 	"github.com/a8m/envsubst"
 	"github.com/eddieowens/opts"
 	"github.com/fsnotify/fsnotify"
+	"github.com/jaronnie/genius"
 	"github.com/zeromicro/go-zero/core/configcenter/subscriber"
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -24,6 +25,8 @@ type FsNotify struct {
 
 type FsNotifyOpts struct {
 	UseEnv bool
+
+	UseKey string
 }
 
 func (opts FsNotifyOpts) DefaultOptions() FsNotifyOpts {
@@ -33,6 +36,12 @@ func (opts FsNotifyOpts) DefaultOptions() FsNotifyOpts {
 func WithUseEnv(useEnv bool) opts.Opt[FsNotifyOpts] {
 	return func(o *FsNotifyOpts) {
 		o.UseEnv = useEnv
+	}
+}
+
+func WithUseKey(useKey string) opts.Opt[FsNotifyOpts] {
+	return func(o *FsNotifyOpts) {
+		o.UseKey = useKey
 	}
 }
 
@@ -88,6 +97,18 @@ func (f *FsNotify) Value() (string, error) {
 
 	if f.options.UseEnv {
 		file, err = envsubst.Bytes(file)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if f.options.UseKey != "" {
+		g, err := genius.NewFromType(file, filepath.Ext(f.path))
+		if err != nil {
+			return "", err
+		}
+		sub := g.Sub(f.options.UseKey)
+		file, err = sub.EncodeToType(filepath.Ext(f.path))
 		if err != nil {
 			return "", err
 		}
