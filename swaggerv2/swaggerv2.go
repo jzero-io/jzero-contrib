@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/zeromicro/go-zero/rest"
+
+	"github.com/jzero-io/jzero-contrib/templatex"
 )
 
 type Opts func(*swaggerConfig)
@@ -77,7 +79,7 @@ func uiHandler(config *swaggerConfig) http.HandlerFunc {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
 
-		uiHTML, _ := ParseTemplate(map[string]any{
+		uiHTML, _ := templatex.ParseTemplate(map[string]any{
 			"SwaggerHost":      config.SwaggerHost,
 			"SwaggerJsonsPath": swaggerJsonsPath,
 		}, []byte(swaggerTemplateV2))
