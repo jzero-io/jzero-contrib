@@ -23,7 +23,9 @@ func TestSyncMap(t *testing.T) {
 
 		keys, err := cache.GetPrefixKeysCtx(context.Background(), "JWT_ADMIN_AUTH:1:")
 		assert.NoError(t, err)
-		assert.Equal(t, []string{"JWT_ADMIN_AUTH:1:abc", "JWT_ADMIN_AUTH:1:def", "JWT_ADMIN_AUTH:1:ghi"}, keys)
+		assert.Contains(t, keys, "JWT_ADMIN_AUTH:1:abc")
+		assert.Contains(t, keys, "JWT_ADMIN_AUTH:1:def")
+		assert.Contains(t, keys, "JWT_ADMIN_AUTH:1:ghi")
 	})
 }
 

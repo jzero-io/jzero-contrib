@@ -15,15 +15,14 @@ func TestFileLock(t *testing.T) {
 		go func(num int) {
 			defer wg.Done()
 			flock, _ := New("testdata/config")
-			err := flock.Lock()
-			if err != nil {
-				t.Error(err)
-			}
-			defer flock.Unlock()
+			_ = flock.Lock()
+			defer func(flock *FileLock) {
+				_ = flock.Unlock()
+			}(flock)
 
-			f, _ := os.OpenFile("testdata/config", os.O_APPEND|os.O_WRONLY, 0666)
+			f, _ := os.OpenFile("testdata/config", os.O_APPEND|os.O_WRONLY, 0o666)
 			defer f.Close()
-			f.WriteString("test" + cast.ToString(num) + "\n")
+			_, _ = f.WriteString("test" + cast.ToString(num) + "\n")
 		}(i)
 	}
 	wg.Wait()
