@@ -63,11 +63,12 @@ func (c Chain) AddCondition(condition Condition) Chain {
 func (c Chain) addChain(field string, operator Operator, value any, op ...opts.Opt[ChainOperatorOpts]) Chain {
 	o := opts.DefaultApply(op...)
 	c.conditions = append(c.conditions, Condition{
-		Field:    field,
-		Operator: operator,
-		Value:    value,
-		Skip:     o.Skip,
-		SkipFunc: o.SkipFunc,
+		Field:     field,
+		Operator:  operator,
+		Value:     value,
+		ValueFunc: o.ValueFunc,
+		Skip:      o.Skip,
+		SkipFunc:  o.SkipFunc,
 	})
 	return c
 }
