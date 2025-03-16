@@ -1,115 +1,20 @@
 # jzero-contrib
 
-jzero contrib
+jzero contrib是一个 jzero 框架的扩展库，包含了一些 jzero 的扩展功能, go-zero 用户也可以利用该生态增强开发体验和效率。
 
-## swaggerv2
+## cache
 
-在线展示 swagger ui 文档
-
-![](https://oss.jaronnie.com/image-20240627175804999.png)
-
-### Usage
-
-将 swagger.json 放在 docs 文件夹下
-
-```go
-package main
-
-import (
-	"github.com/jzero-io/jzero-contrib/swaggerv2"
-	"github.com/zeromicro/go-zero/rest"
-)
-
-func main() {
-	server := rest.MustNewServer(rest.RestConf{
-		Port: 8001,
-	})
-	swaggerv2.RegisterRoutes(server, swaggerv2.WithSwaggerPath("docs"))
-
-	server.Start()
-}
-```
-
-访问 localhost:8001/swagger
+统一封装的 cache 缓存层, 建立在 `github.com/zeromicro/go-zero/core/stores/cache` 之上, 提供更多功能.
 
 ## condition
 
-查询/更新/删除 条件构建器
+条件构造器, 基于 `sqlbuilder` 封装了常用条件构造, 并结合 `go-zero` 的 `model` 层 和 `sqlx` 框架, 针对常用业务进一步封装, 强化开发体验.
 
-```go
-func TestSelectWithCondition(t *testing.T) {
-	sqlbuilder.DefaultFlavor = sqlbuilder.MySQL
+## dynamic_conf
 
-	var values []any
-	values = append(values, []int{24, 48}, []int{170, 175})
+动态配置, 基于 `github.com/zeromicro/go-zero/core/configcenter` 和 `github.com/fsnotify/fsnotify`, 提供一种本地配置文件动态更新机制.
 
-	cds := New(Condition{
-		Field:    "name",
-		Operator: Equal,
-		Value:    "jaronnie",
-	}, Condition{
-		Or:          true,
-		OrFields:    []string{"age", "height"},
-		OrOperators: []Operator{Between, Between},
-		OrValues:    values,
-	})
+## swaggerv2
 
-	sb := sqlbuilder.NewSelectBuilder().Select("name", "age", "height").From("user")
-	Apply(sb, cds...)
+一键为你的服务提供 swagger 在线访问 UI 页面.
 
-	sql, args := sb.Build()
-	fmt.Println(sql)
-	fmt.Println(args)
-}
-
-func TestUpdateWithCondition(t *testing.T) {
-	sqlbuilder.DefaultFlavor = sqlbuilder.MySQL
-
-	var values []any
-	values = append(values, []int{24, 48}, []int{170, 175})
-
-	cds := New(Condition{
-		Field:    "name",
-		Operator: Equal,
-		Value:    "jaronnie",
-	}, Condition{
-		Or:          true,
-		OrFields:    []string{"age", "height"},
-		OrOperators: []Operator{Between, Between},
-		OrValues:    values,
-	})
-
-	sb := sqlbuilder.NewUpdateBuilder().Update("user")
-	ApplyUpdate(sb, cds...)
-	sb.Set(sb.Equal("name", "gocloudcoder"))
-
-	sql, args := sb.Build()
-	fmt.Println(sql)
-	fmt.Println(args)
-}
-
-func TestDeleteWithCondition(t *testing.T) {
-	sqlbuilder.DefaultFlavor = sqlbuilder.MySQL
-
-	var values []any
-	values = append(values, []int{24, 48}, []int{170, 175})
-
-	cds := New(Condition{
-		Field:    "name",
-		Operator: Equal,
-		Value:    "jaronnie",
-	}, Condition{
-		Or:          true,
-		OrFields:    []string{"age", "height"},
-		OrOperators: []Operator{Between, Between},
-		OrValues:    values,
-	})
-
-	sb := sqlbuilder.NewDeleteBuilder().DeleteFrom("user")
-	ApplyDelete(sb, cds...)
-
-	sql, args := sb.Build()
-	fmt.Println(sql)
-	fmt.Println(args)
-}
-```
