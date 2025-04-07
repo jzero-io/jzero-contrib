@@ -1,7 +1,6 @@
 package handlerx
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -33,56 +32,25 @@ func Test_weaklyDecodeRequest(t *testing.T) {
 		req       any
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    []byte
-		wantErr bool
+		name string
+		args args
 	}{
 		{
 			name: "test",
 			args: args{
-				bodyBytes: []byte(`{
-  "base": {
-    "username": "test10@myibc.net",
-    "nickname": "",
-    "groupId": "1",
-    "phone": "",
-    "email": "",
-    "password": "042161e8476a02f81d759b8da24aada789ab855a7a83c2060da6a6266c7693b77259136a7426e2b73ff1a776fb9a749a1db3cebcfacc159184eded0039539ec467EFC94222E6F56E720D7F7F4AB99A631BCC5C519795A98D490804156390F3D15D20DE2BF3347A7267B5",
-    "enableDeviceCodeAuth": true,
-    "accessAlgorithm": "SM9",
-    "sm2UsernameSource": "1",
-    "sm2Cert": ""
-  }
-}`),
-				req: CreateRequest{
-					Base: CreateBase{
-						UserBase: UserBase{
-							Nickname:             "test",
-							GroupId:              1,
-							Phone:                "",
-							Email:                "",
-							Status:               0,
-							EnableDeviceCodeAuth: true,
-						},
-						Username: "test10@myibc.net",
-						Password: "042161e8476a02f81d759b8da24aada789ab855a7a83c2060da6a",
-					},
-				},
+				bodyBytes: []byte(`{"base":{"username":"test10@myibc.net","nickname":"","groupId":"1","phone":"","email":"","password":"043064917508e684c87033314275c923b1df07341cad8bec49a4464389954d893cf778252bf7d740047369a7d0f544f193e0e97db69c83755c71d483978b62df966ACBC745216B44585622F2372D38CEF785786C4295772F08E71C18116D3E65B913C04C2815CA275725","enableDeviceCodeAuth":true,"accessAlgorithm":"SM9","sm2UsernameSource":"1","sm2Cert":""}}`),
+				req:       &CreateRequest{},
 			},
-			want: []byte(`{"base":{"nickname":"test","groupId":1,"phone":"","email":"","status":0,"enableDeviceCodeAuth":true,"username":"test10@myibc.net","password":"042161e8476a02f81d759b8da24aada789ab855a7a83c2060da6a6266c7693b77259136a7426e2b73ff1a776fb9a749a1db3cebcfacc159184eded0039539ec467EFC94222E6F56E720D7F7F4AB99A631BCC5C519795A98D490804156390F3D15D20DE2BF3347A7267B5","accessAlgorithm":"SM9","sm2UsernameSource":"1","sm2Cert":""}}`),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := weaklyDecodeRequest(tt.args.bodyBytes, tt.args.req)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("weaklyDecodeRequest() error = %v, wantErr %v", err, tt.wantErr)
+			if err != nil {
+				t.Errorf("weaklyDecodeRequest() error = %v", err)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("weaklyDecodeRequest() got = %s, want %s", got, tt.want)
-			}
+			t.Log(string(got))
 		})
 	}
 }

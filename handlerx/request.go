@@ -2,12 +2,12 @@ package handlerx
 
 import (
 	"bytes"
-	"encoding/json"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/json-iterator/go/extra"
 	"io"
 	"net/http"
 	"strings"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -44,31 +44,16 @@ func WeaklyDecodeRequest(r *http.Request, req any) error {
 }
 
 func weaklyDecodeRequest(bodyBytes []byte, req any) ([]byte, error) {
-	var (
-		rawData map[string]any
-		err     error
-	)
-	if err = json.Unmarshal(bodyBytes, &rawData); err != nil {
+	extra.RegisterFuzzyDecoders() // 启用模糊解码
+
+	if err := jsoniter.Unmarshal(bodyBytes, &req); err != nil {
 		return nil, err
 	}
 
-	config := &mapstructure.DecoderConfig{
-		WeaklyTypedInput: true, // 允许弱类型转换
-		Result:           &req,
-	}
-
-	decoder, err := mapstructure.NewDecoder(config)
-	if err != nil {
-		return nil, err
-	}
-	if err = decoder.Decode(rawData); err != nil {
-		return nil, err
-	}
-
-	bodyBytes, err = json.Marshal(req)
+	weaklyDecodeBytes, err := jsoniter.Marshal(req)
 	if err != nil {
 		return nil, err
 	}
 
-	return bodyBytes, nil
+	return weaklyDecodeBytes, nil
 }
