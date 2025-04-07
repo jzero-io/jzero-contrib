@@ -14,8 +14,9 @@ require (
 	github.com/jaronnie/genius v0.5.1
 	github.com/json-iterator/go v1.1.12
 	github.com/pkg/errors v0.9.1
+	github.com/samber/lo v1.49.1
 	github.com/spf13/cast v1.5.1
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/zeromicro/go-zero v1.7.4
 )
 

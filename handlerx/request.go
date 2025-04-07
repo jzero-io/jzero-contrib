@@ -2,12 +2,12 @@ package handlerx
 
 import (
 	"bytes"
-	jsoniter "github.com/json-iterator/go"
-	"github.com/json-iterator/go/extra"
 	"io"
 	"net/http"
 	"strings"
 
+	jsoniter "github.com/json-iterator/go"
+	"github.com/json-iterator/go/extra"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -44,6 +44,7 @@ func WeaklyDecodeRequest(r *http.Request, req any) error {
 }
 
 func weaklyDecodeRequest(bodyBytes []byte, req any) ([]byte, error) {
+	RegisterPointerFuzzyDecoders()
 	extra.RegisterFuzzyDecoders() // 启用模糊解码
 
 	if err := jsoniter.Unmarshal(bodyBytes, &req); err != nil {
