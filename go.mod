@@ -12,6 +12,7 @@ require (
 	github.com/huandu/go-assert v1.1.6
 	github.com/huandu/go-sqlbuilder v1.28.0
 	github.com/jaronnie/genius v0.5.1
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cast v1.5.1
 	github.com/stretchr/testify v1.9.0
