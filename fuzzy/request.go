@@ -34,6 +34,9 @@ func FuzzyDecodeRequest(r *http.Request, req any) error {
 	}
 
 	bodyBytes, err = FuzzyDecode(bodyBytes, req)
+	if err != nil {
+		return err
+	}
 
 	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 	r.ContentLength = int64(len(bodyBytes))

@@ -86,6 +86,7 @@ func TestFuzzyDecodeRequest_EdgeCases(t *testing.T) {
 			input:      []byte(`{"value": null}`),
 			outputType: &struct{ Value int }{},
 			check: func(t *testing.T, output any) {
+				t.Helper()
 				assert.Equal(t, 0, output.(*struct{ Value int }).Value)
 			},
 		},
@@ -94,6 +95,7 @@ func TestFuzzyDecodeRequest_EdgeCases(t *testing.T) {
 			input:      []byte(`{"value": ""}`),
 			outputType: &struct{ Value int }{},
 			check: func(t *testing.T, output any) {
+				t.Helper()
 				assert.Equal(t, 0, output.(*struct{ Value int }).Value)
 			},
 		},
@@ -105,6 +107,7 @@ func TestFuzzyDecodeRequest_EdgeCases(t *testing.T) {
 				FalseVal bool
 			}{},
 			check: func(t *testing.T, output any) {
+				t.Helper()
 				out := output.(*struct {
 					TrueVal  bool
 					FalseVal bool
@@ -121,6 +124,7 @@ func TestFuzzyDecodeRequest_EdgeCases(t *testing.T) {
 				FalseVal bool
 			}{},
 			check: func(t *testing.T, output any) {
+				t.Helper()
 				out := output.(*struct {
 					TrueVal  bool
 					FalseVal bool
