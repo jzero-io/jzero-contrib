@@ -1,4 +1,4 @@
-package handlerx
+package fuzzy
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-func WeaklyDecodeRequest(r *http.Request, req any) error {
+func FuzzyDecodeRequest(r *http.Request, req any) error {
 	if r.Body == nil {
 		return nil
 	}
@@ -33,7 +33,7 @@ func WeaklyDecodeRequest(r *http.Request, req any) error {
 		return err
 	}
 
-	bodyBytes, err = weaklyDecodeRequest(bodyBytes, req)
+	bodyBytes, err = FuzzyDecode(bodyBytes, req)
 
 	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 	r.ContentLength = int64(len(bodyBytes))
@@ -43,7 +43,7 @@ func WeaklyDecodeRequest(r *http.Request, req any) error {
 	return nil
 }
 
-func weaklyDecodeRequest(bodyBytes []byte, req any) ([]byte, error) {
+func FuzzyDecode(bodyBytes []byte, req any) ([]byte, error) {
 	RegisterPointerFuzzyDecoders()
 	extra.RegisterFuzzyDecoders() // 启用模糊解码
 
@@ -51,10 +51,10 @@ func weaklyDecodeRequest(bodyBytes []byte, req any) ([]byte, error) {
 		return nil, err
 	}
 
-	weaklyDecodeBytes, err := jsoniter.Marshal(req)
+	fuzzyDecodeBytes, err := jsoniter.Marshal(req)
 	if err != nil {
 		return nil, err
 	}
 
-	return weaklyDecodeBytes, nil
+	return fuzzyDecodeBytes, nil
 }

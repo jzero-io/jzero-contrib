@@ -1,4 +1,4 @@
-package handlerx
+package fuzzy
 
 import (
 	"encoding/json"
@@ -16,6 +16,8 @@ const maxInt = int(maxUint >> 1)
 const minInt = -maxInt - 1
 
 func RegisterPointerFuzzyDecoders() {
+	jsoniter.RegisterTypeDecoder("bool", &fuzzyBoolDecoder{})
+	jsoniter.RegisterTypeDecoder("*bool", &fuzzyPointerBoolDecoder{})
 	jsoniter.RegisterTypeDecoder("*string", &fuzzyPointerStringDecoder{})
 	jsoniter.RegisterTypeDecoder("*float32", &fuzzyFloat32Decoder{})
 	jsoniter.RegisterTypeDecoder("*float64", &fuzzyFloat64Decoder{})
@@ -29,14 +31,7 @@ func RegisterPointerFuzzyDecoders() {
 			*((**int)(ptr)) = lo.ToPtr(int(val))
 		} else {
 			token := iter.WhatIsNext()
-			if token == jsoniter.StringValue {
-				str := iter.ReadString()
-				if str == "" {
-					*((*any)(ptr)) = nil
-				} else {
-					iter.ReportError("fuzzy decode *int", "expected null or integer value")
-				}
-			} else if token == jsoniter.NilValue {
+			if token == jsoniter.NilValue {
 				*((*any)(ptr)) = nil
 			} else {
 				*((**int)(ptr)) = lo.ToPtr(iter.ReadInt())
@@ -54,14 +49,7 @@ func RegisterPointerFuzzyDecoders() {
 			*((**uint)(ptr)) = lo.ToPtr(uint(val))
 		} else {
 			token := iter.WhatIsNext()
-			if token == jsoniter.StringValue {
-				str := iter.ReadString()
-				if str == "" {
-					*((*any)(ptr)) = nil
-				} else {
-					iter.ReportError("fuzzy decode *uint", "expected null or integer value")
-				}
-			} else if token == jsoniter.NilValue {
+			if token == jsoniter.NilValue {
 				*((*any)(ptr)) = nil
 			} else {
 				*((**uint)(ptr)) = lo.ToPtr(iter.ReadUint())
@@ -78,14 +66,7 @@ func RegisterPointerFuzzyDecoders() {
 			*((**int8)(ptr)) = lo.ToPtr(int8(val))
 		} else {
 			token := iter.WhatIsNext()
-			if token == jsoniter.StringValue {
-				str := iter.ReadString()
-				if str == "" {
-					*((*any)(ptr)) = nil
-				} else {
-					iter.ReportError("fuzzy decode *int8", "expected null or integer value")
-				}
-			} else if token == jsoniter.NilValue {
+			if token == jsoniter.NilValue {
 				*((*any)(ptr)) = nil
 			} else {
 				*((**int8)(ptr)) = lo.ToPtr(iter.ReadInt8())
@@ -102,14 +83,7 @@ func RegisterPointerFuzzyDecoders() {
 			*((*uint8)(ptr)) = uint8(val)
 		} else {
 			token := iter.WhatIsNext()
-			if token == jsoniter.StringValue {
-				str := iter.ReadString()
-				if str == "" {
-					*((*any)(ptr)) = nil
-				} else {
-					iter.ReportError("fuzzy decode *uint8", "expected null or integer value")
-				}
-			} else if token == jsoniter.NilValue {
+			if token == jsoniter.NilValue {
 				*((*any)(ptr)) = nil
 			} else {
 				*((**uint8)(ptr)) = lo.ToPtr(iter.ReadUint8())
@@ -126,14 +100,7 @@ func RegisterPointerFuzzyDecoders() {
 			*((**uint16)(ptr)) = lo.ToPtr(uint16(val))
 		} else {
 			token := iter.WhatIsNext()
-			if token == jsoniter.StringValue {
-				str := iter.ReadString()
-				if str == "" {
-					*((*any)(ptr)) = nil
-				} else {
-					iter.ReportError("fuzzy decode *int16", "expected null or integer value")
-				}
-			} else if token == jsoniter.NilValue {
+			if token == jsoniter.NilValue {
 				*((*any)(ptr)) = nil
 			} else {
 				*((**int16)(ptr)) = lo.ToPtr(iter.ReadInt16())
@@ -150,14 +117,7 @@ func RegisterPointerFuzzyDecoders() {
 			*((**uint16)(ptr)) = lo.ToPtr(uint16(val))
 		} else {
 			token := iter.WhatIsNext()
-			if token == jsoniter.StringValue {
-				str := iter.ReadString()
-				if str == "" {
-					*((*any)(ptr)) = nil
-				} else {
-					iter.ReportError("fuzzy decode *uint16", "expected null or integer value")
-				}
-			} else if token == jsoniter.NilValue {
+			if token == jsoniter.NilValue {
 				*((*any)(ptr)) = nil
 			} else {
 				*((**uint16)(ptr)) = lo.ToPtr(iter.ReadUint16())
@@ -174,14 +134,7 @@ func RegisterPointerFuzzyDecoders() {
 			*((**int32)(ptr)) = lo.ToPtr(int32(val))
 		} else {
 			token := iter.WhatIsNext()
-			if token == jsoniter.StringValue {
-				str := iter.ReadString()
-				if str == "" {
-					*((*any)(ptr)) = nil
-				} else {
-					iter.ReportError("fuzzy decode *int32", "expected null or integer value")
-				}
-			} else if token == jsoniter.NilValue {
+			if token == jsoniter.NilValue {
 				*((*any)(ptr)) = nil
 			} else {
 				*((**int32)(ptr)) = lo.ToPtr(iter.ReadInt32())
@@ -198,16 +151,7 @@ func RegisterPointerFuzzyDecoders() {
 			*((**uint32)(ptr)) = lo.ToPtr(uint32(val))
 		} else {
 			token := iter.WhatIsNext()
-			if token == jsoniter.StringValue {
-				str := iter.ReadString()
-				if str == "" {
-					// 当值为空字符串时，设置目标指针为 nil
-					*((*any)(ptr)) = nil
-				} else {
-					// 如果需要支持非空字符串转整数，请在此添加逻辑
-					iter.ReportError("fuzzy decode *uint32", "expected null or integer value")
-				}
-			} else if token == jsoniter.NilValue {
+			if token == jsoniter.NilValue {
 				*((*any)(ptr)) = nil
 			} else {
 				*((**uint32)(ptr)) = lo.ToPtr(iter.ReadUint32())
@@ -224,14 +168,7 @@ func RegisterPointerFuzzyDecoders() {
 			*((**int64)(ptr)) = lo.ToPtr(int64(val))
 		} else {
 			token := iter.WhatIsNext()
-			if token == jsoniter.StringValue {
-				str := iter.ReadString()
-				if str == "" {
-					*((*any)(ptr)) = nil
-				} else {
-					iter.ReportError("fuzzy decode *int64", "expected null or integer value")
-				}
-			} else if token == jsoniter.NilValue {
+			if token == jsoniter.NilValue {
 				*((*any)(ptr)) = nil
 			} else {
 				*((**int64)(ptr)) = lo.ToPtr(iter.ReadInt64())
@@ -248,22 +185,77 @@ func RegisterPointerFuzzyDecoders() {
 			*((**uint64)(ptr)) = lo.ToPtr(uint64(val))
 		} else {
 			token := iter.WhatIsNext()
-			if token == jsoniter.StringValue {
-				str := iter.ReadString()
-				if str == "" {
-					// 当值为空字符串时，设置目标指针为 nil
-					*((*any)(ptr)) = nil
-				} else {
-					// 如果需要支持非空字符串转整数，请在此添加逻辑
-					iter.ReportError("fuzzy decode *uint64", "expected null or integer value")
-				}
-			} else if token == jsoniter.NilValue {
+			if token == jsoniter.NilValue {
 				*((*any)(ptr)) = nil
 			} else {
 				*((**uint64)(ptr)) = lo.ToPtr(iter.ReadUint64())
 			}
 		}
 	}})
+}
+
+type fuzzyBoolDecoder struct {
+}
+
+type fuzzyPointerBoolDecoder struct {
+}
+
+func (f fuzzyPointerBoolDecoder) Decode(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
+	valueType := iter.WhatIsNext()
+	switch valueType {
+	case jsoniter.NumberValue:
+		var number json.Number
+		iter.ReadVal(&number)
+		if number == "1" {
+			*((**bool)(ptr)) = lo.ToPtr(true)
+		} else {
+			*((**bool)(ptr)) = lo.ToPtr(false)
+		}
+	case jsoniter.StringValue:
+		value := iter.ReadString()
+		switch value {
+		case "1", "true":
+			*((**bool)(ptr)) = lo.ToPtr(true)
+		case "0", "false":
+			*((**bool)(ptr)) = lo.ToPtr(false)
+		default:
+			iter.ReportError("fuzzyPointerBoolDecoder", "not bool")
+		}
+	case jsoniter.NilValue:
+		iter.Skip()
+		*((**bool)(ptr)) = nil
+	default:
+		iter.ReportError("fuzzyPointerBoolDecoder", "not number or string")
+	}
+}
+
+func (f fuzzyBoolDecoder) Decode(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
+	valueType := iter.WhatIsNext()
+	switch valueType {
+	case jsoniter.NumberValue:
+		var number json.Number
+		iter.ReadVal(&number)
+		if number == "1" {
+			*((*bool)(ptr)) = true
+		} else {
+			*((*bool)(ptr)) = false
+		}
+	case jsoniter.StringValue:
+		value := iter.ReadString()
+		switch value {
+		case "1", "true":
+			*((*bool)(ptr)) = true
+		case "0", "false":
+			*((*bool)(ptr)) = false
+		default:
+			iter.ReportError("fuzzyBoolDecoder", "not bool")
+		}
+	case jsoniter.NilValue:
+		iter.Skip()
+		*((*bool)(ptr)) = false
+	default:
+		iter.ReportError("fuzzyBoolDecoder", "not number or string")
+	}
 }
 
 type fuzzyPointerStringDecoder struct {
@@ -315,9 +307,7 @@ func (decoder *fuzzyPointerIntegerDecoder) Decode(ptr unsafe.Pointer, iter *json
 	default:
 		iter.ReportError("fuzzyPointerIntegerDecoder", "not number or string")
 	}
-	if len(str) == 0 {
-		str = "0"
-	}
+
 	newIter := iter.Pool().BorrowIterator([]byte(str))
 	defer iter.Pool().ReturnIterator(newIter)
 	isFloat := strings.IndexByte(str, '.') != -1
