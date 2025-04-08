@@ -39,7 +39,7 @@ func TestFuzzyDecodeRequest(t *testing.T) {
 		},
 		{
 			name:       "struct with int field from string",
-			input:      []byte(`{"age": "30"}`),
+			input:      []byte(`{"age": "18"}`),
 			outputType: &struct{ Age int }{},
 		},
 
@@ -93,11 +93,10 @@ func TestFuzzyDecodeRequest(t *testing.T) {
     "groupId": 1,
     "phone": "",
     "email": "",
-    "password": "0416f839f229cf221ebc4667c9839f90c687aef23cff6f885375f8ab6a506a19e191620e86ec517e61a5cee092298bf340934d7f70328b61e9559e0e9ec2849d8b801D21CB1459F0A1364377270A0BF8620732658BBB0958A1C0A1214EC5BD211ECB0757A3D5DB981090",
+    "password": "0416f839f229cf221ebc4667c9839f90c687aef23cff6f885375f8ab6a506a19e191620e86ec517e61a5cee092298bf340934d7f70328b61e9559e0e9ec2849d8b801D21CB1459F0A1364377270A0BF8620732658BBB0958A1C0A1214EC5BD211ECB0757A3D5DB981090"
   }
 }`),
-			outputType:  &CreateRequest{},
-			expectError: true,
+			outputType: &CreateRequest{},
 		},
 	}
 
@@ -105,6 +104,7 @@ func TestFuzzyDecodeRequest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			decode, err := Decode(tt.input, tt.outputType)
 			if err != nil {
+				t.Errorf("Decode error: %v", err.Error())
 				return
 			}
 			t.Log(tt.outputType)
