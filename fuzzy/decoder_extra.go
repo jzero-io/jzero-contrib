@@ -203,6 +203,8 @@ type fuzzyPointerBoolDecoder struct{}
 func (f fuzzyPointerBoolDecoder) Decode(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 	valueType := iter.WhatIsNext()
 	switch valueType {
+	case jsoniter.BoolValue:
+		*((*bool)(ptr)) = iter.ReadBool()
 	case jsoniter.NumberValue:
 		var number json.Number
 		iter.ReadVal(&number)
@@ -232,6 +234,8 @@ func (f fuzzyPointerBoolDecoder) Decode(ptr unsafe.Pointer, iter *jsoniter.Itera
 func (f fuzzyBoolDecoder) Decode(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 	valueType := iter.WhatIsNext()
 	switch valueType {
+	case jsoniter.BoolValue:
+		*((*bool)(ptr)) = iter.ReadBool()
 	case jsoniter.NumberValue:
 		var number json.Number
 		iter.ReadVal(&number)

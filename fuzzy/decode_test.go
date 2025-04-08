@@ -7,6 +7,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type CreateRequest struct {
+	Base CreateBase `json:"base"` // 用户基本信息
+}
+
+type CreateBase struct {
+	UserBase
+	Username string `json:"username"` // 用户账号
+	Password string `json:"password"` // 登陆密码
+}
+
+type UserBase struct {
+	Nickname string `json:"nickname" olabel:"用户姓名"`                                            // 用户名称
+	GroupId  int    `json:"groupId" olabel:"所属组织id"`                                           // 组织 id
+	Phone    string `json:"phone" olabel:"手机号"`                                                // 手机号
+	Email    string `json:"email" olabel:"邮箱"`                                                 // 邮箱
+	Status   int8   `json:"status,optional" olabel:"状态" ovalue:"0=正常,1=已锁定,2=已失效,3=已注销,4=已禁用"` // 用户状态 0-正常 1-已锁定 2-已失效 3-已注销 4-已禁用
+}
+
 func TestFuzzyDecodeRequest(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -24,9 +42,15 @@ func TestFuzzyDecodeRequest(t *testing.T) {
 			input:      []byte(`{"age": "30"}`),
 			outputType: &struct{ Age int }{},
 		},
+
 		{
 			name:       "struct with bool field from string",
 			input:      []byte(`{"active": "true"}`),
+			outputType: &struct{ Active bool }{},
+		},
+		{
+			name:       "struct with bool field from bool",
+			input:      []byte(`{"active": true}`),
 			outputType: &struct{ Active bool }{},
 		},
 		{
@@ -34,6 +58,7 @@ func TestFuzzyDecodeRequest(t *testing.T) {
 			input:      []byte(`{"active": "true"}`),
 			outputType: &struct{ Active *bool }{},
 		},
+
 		{
 			name:       "struct with float field from string",
 			input:      []byte(`{"price": "19.99"}`),
@@ -58,6 +83,21 @@ func TestFuzzyDecodeRequest(t *testing.T) {
 			name:       "pointer fields",
 			input:      []byte(`{"ptr": "123"}`),
 			outputType: &struct{ Ptr *int }{},
+		},
+		{
+			name: "embeded struct",
+			input: []byte(`{
+  "base": {
+    "username": "test12@myibc.net",
+    "nickname": "",
+    "groupId": 1,
+    "phone": "",
+    "email": "",
+    "password": "0416f839f229cf221ebc4667c9839f90c687aef23cff6f885375f8ab6a506a19e191620e86ec517e61a5cee092298bf340934d7f70328b61e9559e0e9ec2849d8b801D21CB1459F0A1364377270A0BF8620732658BBB0958A1C0A1214EC5BD211ECB0757A3D5DB981090",
+  }
+}`),
+			outputType:  &CreateRequest{},
+			expectError: true,
 		},
 	}
 
