@@ -11,9 +11,11 @@ import (
 	"github.com/samber/lo"
 )
 
-const maxUint = ^uint(0)
-const maxInt = int(maxUint >> 1)
-const minInt = -maxInt - 1
+const (
+	maxUint = ^uint(0)
+	maxInt  = int(maxUint >> 1)
+	minInt  = -maxInt - 1
+)
 
 func RegisterPointerFuzzyDecoders() {
 	jsoniter.RegisterTypeDecoder("bool", &fuzzyBoolDecoder{})
@@ -194,11 +196,9 @@ func RegisterPointerFuzzyDecoders() {
 	}})
 }
 
-type fuzzyBoolDecoder struct {
-}
+type fuzzyBoolDecoder struct{}
 
-type fuzzyPointerBoolDecoder struct {
-}
+type fuzzyPointerBoolDecoder struct{}
 
 func (f fuzzyPointerBoolDecoder) Decode(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 	valueType := iter.WhatIsNext()
@@ -258,8 +258,7 @@ func (f fuzzyBoolDecoder) Decode(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 	}
 }
 
-type fuzzyPointerStringDecoder struct {
-}
+type fuzzyPointerStringDecoder struct{}
 
 func (decoder *fuzzyPointerStringDecoder) Decode(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 	valueType := iter.WhatIsNext()
@@ -317,8 +316,7 @@ func (decoder *fuzzyPointerIntegerDecoder) Decode(ptr unsafe.Pointer, iter *json
 	}
 }
 
-type fuzzyFloat32Decoder struct {
-}
+type fuzzyFloat32Decoder struct{}
 
 func (decoder *fuzzyFloat32Decoder) Decode(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 	valueType := iter.WhatIsNext()
@@ -349,8 +347,7 @@ func (decoder *fuzzyFloat32Decoder) Decode(ptr unsafe.Pointer, iter *jsoniter.It
 	}
 }
 
-type fuzzyFloat64Decoder struct {
-}
+type fuzzyFloat64Decoder struct{}
 
 func (decoder *fuzzyFloat64Decoder) Decode(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 	valueType := iter.WhatIsNext()
