@@ -63,7 +63,7 @@ func TestFuzzyDecodeRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			decode, err := FuzzyDecode(tt.input, tt.outputType)
+			decode, err := Decode(tt.input, tt.outputType)
 			if err != nil {
 				return
 			}
@@ -138,7 +138,7 @@ func TestFuzzyDecodeRequest_EdgeCases(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			output := tt.outputType
-			_, err := FuzzyDecode(tt.input, output)
+			_, err := Decode(tt.input, output)
 			assert.NoError(t, err)
 			tt.check(t, output)
 		})

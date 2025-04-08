@@ -6,12 +6,10 @@ import (
 	"net/http"
 	"strings"
 
-	jsoniter "github.com/json-iterator/go"
-	"github.com/json-iterator/go/extra"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-func FuzzyDecodeRequest(r *http.Request, req any) error {
+func DecodeRequest(r *http.Request, req any) error {
 	if r.Body == nil {
 		return nil
 	}
@@ -33,7 +31,7 @@ func FuzzyDecodeRequest(r *http.Request, req any) error {
 		return err
 	}
 
-	bodyBytes, err = FuzzyDecode(bodyBytes, req)
+	bodyBytes, err = Decode(bodyBytes, req)
 	if err != nil {
 		return err
 	}
@@ -44,20 +42,4 @@ func FuzzyDecodeRequest(r *http.Request, req any) error {
 	logx.Debugf("new request body bytes: %s", bodyBytes)
 
 	return nil
-}
-
-func FuzzyDecode(bodyBytes []byte, req any) ([]byte, error) {
-	RegisterPointerFuzzyDecoders()
-	extra.RegisterFuzzyDecoders() // 启用模糊解码
-
-	if err := jsoniter.Unmarshal(bodyBytes, &req); err != nil {
-		return nil, err
-	}
-
-	fuzzyDecodeBytes, err := jsoniter.Marshal(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return fuzzyDecodeBytes, nil
 }
