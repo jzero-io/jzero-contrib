@@ -204,7 +204,7 @@ func (f fuzzyPointerBoolDecoder) Decode(ptr unsafe.Pointer, iter *jsoniter.Itera
 	valueType := iter.WhatIsNext()
 	switch valueType {
 	case jsoniter.BoolValue:
-		*((*bool)(ptr)) = iter.ReadBool()
+		*((**bool)(ptr)) = lo.ToPtr(iter.ReadBool())
 	case jsoniter.NumberValue:
 		var number json.Number
 		iter.ReadVal(&number)

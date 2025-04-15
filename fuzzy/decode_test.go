@@ -54,6 +54,11 @@ func TestFuzzyDecodeRequest(t *testing.T) {
 			outputType: &struct{ Active bool }{},
 		},
 		{
+			name:       "struct with pointer bool field from bool",
+			input:      []byte(`{"active": true}`),
+			outputType: &struct{ Active *bool }{},
+		},
+		{
 			name:       "struct with *bool field from string",
 			input:      []byte(`{"active": "true"}`),
 			outputType: &struct{ Active *bool }{},
