@@ -9,6 +9,7 @@ require (
 	github.com/eddieowens/opts v0.1.0
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/guregu/null/v5 v5.0.0
+	github.com/hpcloud/tail v1.0.0
 	github.com/huandu/go-assert v1.1.6
 	github.com/huandu/go-sqlbuilder v1.28.0
 	github.com/jaronnie/genius v0.5.1
@@ -90,6 +91,8 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240701130421-f6361c86f094 // indirect
 	google.golang.org/grpc v1.65.0 // indirect
 	google.golang.org/protobuf v1.35.2 // indirect
+	gopkg.in/fsnotify.v1 v1.4.7 // indirect
+	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
