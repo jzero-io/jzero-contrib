@@ -1,4 +1,4 @@
-package logstash
+package zinclog
 
 var (
 	LogsFile = []string{

@@ -1,17 +1,18 @@
-package logstash
+package zinclog
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/hpcloud/tail"
-	"github.com/zeromicro/go-zero/core/logx"
 	"io"
 	"net/http"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/hpcloud/tail"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 // ZincLogstash implements Logstash interface for ZincSearch
@@ -20,15 +21,25 @@ type ZincLogstash struct {
 	username    string
 	password    string
 	serviceName string
+	logsPath    []string
+
+	wg         sync.WaitGroup
+	stopChan   chan struct{}
+	notifyChan map[string]chan bool
+	mu         sync.Mutex
 }
 
 // NewZincLogstash creates a new ZincLogstash instance
-func NewZincLogstash(baseURL, username, password string, serviceName string) *ZincLogstash {
+func NewZincLogstash(baseURL, username, password string, serviceName string, logsPath []string) *ZincLogstash {
 	return &ZincLogstash{
 		baseURL:     baseURL,
 		username:    username,
 		password:    password,
 		serviceName: serviceName,
+		logsPath:    logsPath,
+		stopChan:    make(chan struct{}),
+		notifyChan:  make(map[string]chan bool),
+		mu:          sync.Mutex{},
 	}
 }
 
@@ -60,43 +71,22 @@ func (z *ZincLogstash) SendLog(index, data string) error {
 	return nil
 }
 
-// FileWatcher manages watching multiple log files
-type FileWatcher struct {
-	paths      []string
-	logstash   Logstash
-	wg         sync.WaitGroup
-	stopChan   chan struct{}
-	notifyChan map[string]chan bool
-	mu         sync.Mutex
-}
-
-// NewFileWatcher creates a new FileWatcher instance
-func NewFileWatcher(paths []string, logstash Logstash) *FileWatcher {
-	return &FileWatcher{
-		paths:      paths,
-		logstash:   logstash,
-		stopChan:   make(chan struct{}),
-		notifyChan: make(map[string]chan bool),
-		mu:         sync.Mutex{},
-	}
-}
-
 // Start begins watching all configured log files
-func (fw *FileWatcher) Start() {
-	for _, path := range fw.paths {
-		fw.wg.Add(1)
-		go fw.watchFile(path)
+func (z *ZincLogstash) Start() {
+	for _, path := range z.logsPath {
+		z.wg.Add(1)
+		go z.watchFile(path)
 	}
 }
 
 // Stop gracefully stops all file watchers
-func (fw *FileWatcher) Stop() {
-	close(fw.stopChan)
-	fw.wg.Wait()
+func (z *ZincLogstash) Stop() {
+	close(z.stopChan)
+	z.wg.Wait()
 }
 
-func (fw *FileWatcher) watchFile(path string) {
-	defer fw.wg.Done()
+func (z *ZincLogstash) watchFile(path string) {
+	defer z.wg.Done()
 
 	var fileSize int64
 	var err error
@@ -105,9 +95,9 @@ func (fw *FileWatcher) watchFile(path string) {
 
 	notifyChan := make(chan bool)
 
-	fw.mu.Lock()
-	defer fw.mu.Unlock()
-	fw.notifyChan[path] = notifyChan
+	z.mu.Lock()
+	defer z.mu.Unlock()
+	z.notifyChan[path] = notifyChan
 
 	defer func() {
 		if tailer != nil {
@@ -135,7 +125,7 @@ func (fw *FileWatcher) watchFile(path string) {
 	}
 
 	// Start the tail goroutine
-	go fw.tailFile(path, tailer, &curIndex, notifyChan)
+	go z.tailFile(path, tailer, &curIndex, notifyChan)
 
 	// Monitor for file rotation
 	ticker := time.NewTicker(10 * time.Millisecond)
@@ -143,7 +133,7 @@ func (fw *FileWatcher) watchFile(path string) {
 
 	for {
 		select {
-		case <-fw.stopChan:
+		case <-z.stopChan:
 			notifyChan <- true
 			return
 		case <-ticker.C:
@@ -169,7 +159,7 @@ func (fw *FileWatcher) watchFile(path string) {
 			// Reopen the file
 			for {
 				select {
-				case <-fw.stopChan:
+				case <-z.stopChan:
 					return
 				default:
 					tailer, err = tail.TailFile(path, tail.Config{
@@ -185,8 +175,8 @@ func (fw *FileWatcher) watchFile(path string) {
 					}
 
 					notifyChan = make(chan bool)
-					fw.notifyChan[path] = notifyChan
-					go fw.tailFile(path, tailer, &curIndex, notifyChan)
+					z.notifyChan[path] = notifyChan
+					go z.tailFile(path, tailer, &curIndex, notifyChan)
 					break
 				}
 				break
@@ -195,7 +185,7 @@ func (fw *FileWatcher) watchFile(path string) {
 	}
 }
 
-func (fw *FileWatcher) tailFile(path string, tailer *tail.Tail, curIndex *string, notifyChan chan bool) {
+func (z *ZincLogstash) tailFile(path string, tailer *tail.Tail, curIndex *string, notifyChan chan bool) {
 	for {
 		select {
 		case line := <-tailer.Lines:
@@ -205,12 +195,12 @@ func (fw *FileWatcher) tailFile(path string, tailer *tail.Tail, curIndex *string
 
 			// Determine index based on current date
 			year, month, day := time.Now().Date()
-			indexNew := fmt.Sprintf("%s_%s_%d_%02d_%02d", fw.logstash.(*ZincLogstash).serviceName,
+			indexNew := fmt.Sprintf("%s_%s_%d_%02d_%02d", z.serviceName,
 				strings.ReplaceAll(path, "/", "_"), year, month, day)
 
 			// Create index if needed
 			if *curIndex != indexNew {
-				err := fw.createIndex(indexNew)
+				err := z.createIndex(indexNew)
 				if err != nil {
 					logx.Errorf("Failed to create index %s: %v", indexNew, err)
 					continue
@@ -220,7 +210,7 @@ func (fw *FileWatcher) tailFile(path string, tailer *tail.Tail, curIndex *string
 
 			// Send log if not empty
 			if line.Text != "" {
-				if err := fw.logstash.SendLog(*curIndex, line.Text); err != nil {
+				if err := z.SendLog(*curIndex, line.Text); err != nil {
 					logx.Errorf("Failed to send log from %s: %v", path, err)
 				}
 			}
@@ -232,7 +222,7 @@ func (fw *FileWatcher) tailFile(path string, tailer *tail.Tail, curIndex *string
 	}
 }
 
-func (fw *FileWatcher) createIndex(index string) error {
+func (z *ZincLogstash) createIndex(index string) error {
 	config := struct {
 		Name        string `json:"name"`
 		StorageType string `json:"storage_type"`
@@ -248,14 +238,14 @@ func (fw *FileWatcher) createIndex(index string) error {
 		return err
 	}
 
-	url := fmt.Sprintf("%s/api/index", fw.logstash.(*ZincLogstash).baseURL)
+	url := fmt.Sprintf("%s/api/index", z.baseURL)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.SetBasicAuth(fw.logstash.(*ZincLogstash).username, fw.logstash.(*ZincLogstash).password)
+	req.SetBasicAuth(z.username, z.password)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
