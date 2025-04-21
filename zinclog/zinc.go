@@ -16,31 +16,29 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
+type Service struct {
+	Name     string
+	LogsPath []string
+}
+
 // ZincLogstash implements log collection and shipping to ZincSearch
 type ZincLogstash struct {
-	baseURL     string
-	username    string
-	password    string
-	serviceName string
-	logsPath    []string
+	BaseURL  string
+	Username string
+	Password string
+	Services []Service
 
-	wg          sync.WaitGroup
-	stopChan    chan struct{}
-	notifyChans map[string]chan struct{} // Changed to chan struct{} for signaling
-	mu          sync.Mutex
+	wg         sync.WaitGroup
+	stopChan   chan struct{}
+	notifyChan map[string]chan struct{} // Changed to chan struct{} for signaling
+	mu         sync.Mutex
 }
 
 // NewZincLogstash creates a new ZincLogstash instance
-func NewZincLogstash(baseURL, username, password, serviceName string, logsPath []string) *ZincLogstash {
-	return &ZincLogstash{
-		baseURL:     strings.TrimRight(baseURL, "/"),
-		username:    username,
-		password:    password,
-		serviceName: serviceName,
-		logsPath:    logsPath,
-		stopChan:    make(chan struct{}),
-		notifyChans: make(map[string]chan struct{}),
-	}
+func NewZincLogstash(z *ZincLogstash) *ZincLogstash {
+	z.stopChan = make(chan struct{})
+	z.notifyChan = make(map[string]chan struct{})
+	return z
 }
 
 // SendLog sends log data to ZincSearch
@@ -49,7 +47,7 @@ func (z *ZincLogstash) SendLog(index, data string) error {
 		return nil
 	}
 
-	url := fmt.Sprintf("%s/api/%s/_doc", z.baseURL, index)
+	url := fmt.Sprintf("%s/api/%s/_doc", z.BaseURL, index)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(data)))
 	if err != nil {
@@ -57,7 +55,7 @@ func (z *ZincLogstash) SendLog(index, data string) error {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.SetBasicAuth(z.username, z.password)
+	req.SetBasicAuth(z.Username, z.Password)
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
@@ -76,9 +74,11 @@ func (z *ZincLogstash) SendLog(index, data string) error {
 
 // Start begins watching all configured log files
 func (z *ZincLogstash) Start() {
-	for _, path := range z.logsPath {
-		z.wg.Add(1)
-		go z.watchFile(path)
+	for _, s := range z.Services {
+		for _, path := range s.LogsPath {
+			z.wg.Add(1)
+			go z.watchFile(s.Name, path)
+		}
 	}
 }
 
@@ -88,7 +88,7 @@ func (z *ZincLogstash) Stop() {
 	z.wg.Wait()
 }
 
-func (z *ZincLogstash) watchFile(path string) {
+func (z *ZincLogstash) watchFile(serviceName, path string) {
 	defer z.wg.Done()
 
 	var fileSize int64
@@ -101,13 +101,13 @@ func (z *ZincLogstash) watchFile(path string) {
 
 	// Register the channel
 	z.mu.Lock()
-	z.notifyChans[path] = notifyChan
+	z.notifyChan[path] = notifyChan
 	z.mu.Unlock()
 
 	// Cleanup on exit
 	defer func() {
 		z.mu.Lock()
-		delete(z.notifyChans, path)
+		delete(z.notifyChan, path)
 		z.mu.Unlock()
 
 		if tailer != nil {
@@ -136,7 +136,7 @@ func (z *ZincLogstash) watchFile(path string) {
 	}
 
 	// Start the tail processing goroutine
-	go z.tailFile(path, tailer, &curIndex, notifyChan)
+	go z.tailFile(serviceName, path, tailer, &curIndex, notifyChan)
 
 	// Monitor for file rotation
 	ticker := time.NewTicker(100 * time.Millisecond) // Reduced frequency
@@ -184,9 +184,9 @@ func (z *ZincLogstash) watchFile(path string) {
 						if err == nil {
 							notifyChan = make(chan struct{})
 							z.mu.Lock()
-							z.notifyChans[path] = notifyChan
+							z.notifyChan[path] = notifyChan
 							z.mu.Unlock()
-							go z.tailFile(path, tailer, &curIndex, notifyChan)
+							go z.tailFile(serviceName, path, tailer, &curIndex, notifyChan)
 							break
 						}
 						logx.Errorf("Failed to reopen file %s (attempt %d): %v", path, i+1, err)
@@ -204,7 +204,7 @@ func (z *ZincLogstash) watchFile(path string) {
 	}
 }
 
-func (z *ZincLogstash) tailFile(path string, tailer *tail.Tail, curIndex *string, notifyChan <-chan struct{}) {
+func (z *ZincLogstash) tailFile(serviceName, path string, tailer *tail.Tail, curIndex *string, notifyChan <-chan struct{}) {
 	logx.Infof("Started tailing file: %s", path)
 
 	for {
@@ -220,7 +220,7 @@ func (z *ZincLogstash) tailFile(path string, tailer *tail.Tail, curIndex *string
 			// Generate index name
 			year, month, day := time.Now().Date()
 			indexNew := fmt.Sprintf("%s_%s_%d%02d%02d",
-				z.serviceName,
+				serviceName,
 				sanitizeForIndex(path),
 				year, month, day)
 
@@ -261,14 +261,14 @@ func (z *ZincLogstash) createIndex(index string) error {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	url := fmt.Sprintf("%s/api/index", z.baseURL)
+	url := fmt.Sprintf("%s/api/index", z.BaseURL)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.SetBasicAuth(z.username, z.password)
+	req.SetBasicAuth(z.Username, z.Password)
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)

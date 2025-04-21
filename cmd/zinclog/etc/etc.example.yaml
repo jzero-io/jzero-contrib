@@ -1,0 +1,11 @@
+baseURL: "http://192.168.33.13:30000"
+username: admin
+password: Complexpass#123
+services:
+  - name: simpleapi
+    logsPath:
+      - logs/access.log
+      - logs/error.log
+      - logs/slow.log
+      - logs/stat.log
+      - logs/severe.log
