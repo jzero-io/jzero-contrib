@@ -23,10 +23,11 @@ type Service struct {
 
 // ZincLogstash implements log collection and shipping to ZincSearch
 type ZincLogstash struct {
-	BaseURL  string
-	Username string
-	Password string
-	Services []Service
+	BaseURL       string
+	Username      string
+	Password      string
+	Services      []Service
+	IndexStrategy string // hourly,daily,monthly,yearly
 
 	wg         sync.WaitGroup
 	stopChan   chan struct{}
@@ -218,11 +219,10 @@ func (z *ZincLogstash) tailFile(serviceName, path string, tailer *tail.Tail, cur
 			}
 
 			// Generate index name
-			year, month, day := time.Now().Date()
-			indexNew := fmt.Sprintf("%s_%s_%d%02d%02d",
+			indexNew := fmt.Sprintf("%s_%s_%s",
 				serviceName,
 				sanitizeForIndex(path),
-				year, month, day)
+				getIndexStrategy(z.IndexStrategy))
 
 			// Create index if needed
 			if *curIndex != indexNew {
@@ -295,6 +295,21 @@ func sanitizeForIndex(path string) string {
 	return strings.ReplaceAll(
 		strings.TrimSuffix(base, filepath.Ext(base)),
 		".", "_")
+}
+
+func getIndexStrategy(strategy string) string {
+	switch strategy {
+	case "hourly":
+		return time.Now().Format("2006-01-02 15:00:00")
+	case "daily":
+		return time.Now().Format(time.DateOnly)
+	case "monthly":
+		return time.Now().Format("2006-01")
+	case "yearly":
+		return time.Now().Format("2006")
+	default:
+		return time.Now().Format(time.DateOnly)
+	}
 }
 
 func getFileSize(path string) (int64, error) {
