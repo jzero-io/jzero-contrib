@@ -18,7 +18,7 @@ import (
 
 type Service struct {
 	Name     string
-	LogsPath []string
+	LogsPath []string `json:",optional"`
 }
 
 // ZincLogstash implements log collection and shipping to ZincSearch
