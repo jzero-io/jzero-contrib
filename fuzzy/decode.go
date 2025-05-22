@@ -4,17 +4,19 @@ import (
 	"sync"
 
 	jsoniter "github.com/json-iterator/go"
-	"github.com/json-iterator/go/extra"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 var (
-	once sync.Once
+	once                sync.Once
+	EnableXssProtection bool
+	BlueMondayPolicy    = bluemonday.StrictPolicy()
 )
 
 func Decode(bodyBytes []byte, req any) ([]byte, error) {
 	once.Do(func() {
+		RegisterFuzzyDecoders()
 		RegisterPointerFuzzyDecoders()
-		extra.RegisterFuzzyDecoders() // 启用模糊解码
 	})
 
 	if err := jsoniter.Unmarshal(bodyBytes, &req); err != nil {
