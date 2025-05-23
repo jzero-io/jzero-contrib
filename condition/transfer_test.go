@@ -27,6 +27,7 @@ func TestSelectByWhereRawSql(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			sqlbuilder.DefaultFlavor = sqlbuilder.PostgreSQL
 			SelectByWhereRawSql(tt.args.sb, tt.args.originalField, tt.args.args...)
 
 			sql, arguments := tt.args.sb.Build()
