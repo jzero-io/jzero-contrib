@@ -34,7 +34,7 @@ func RawFieldNames(in any) []string {
 			continue
 		case "":
 			if sqlbuilder.DefaultFlavor == sqlbuilder.PostgreSQL {
-				out = append(out, fi.Name)
+				out = append(out, fmt.Sprintf(`"%s"`, fi.Name))
 			} else {
 				out = append(out, fmt.Sprintf("`%s`", fi.Name))
 			}
@@ -54,7 +54,7 @@ func RawFieldNames(in any) []string {
 				tagv = fi.Name
 			}
 			if sqlbuilder.DefaultFlavor == sqlbuilder.PostgreSQL {
-				out = append(out, tagv)
+				out = append(out, fmt.Sprintf(`"%s"`, tagv))
 			} else {
 				out = append(out, fmt.Sprintf("`%s`", tagv))
 			}
