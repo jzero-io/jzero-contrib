@@ -19,12 +19,14 @@ func RawFieldNames(in any) []string {
 		v = v.Elem()
 	}
 
+	// we only accept structs
 	if v.Kind() != reflect.Struct {
 		panic(fmt.Errorf("ToMap only accepts structs; got %T", v))
 	}
 
 	typ := v.Type()
 	for i := 0; i < v.NumField(); i++ {
+		// gets us a StructField
 		fi := typ.Field(i)
 		tagv := fi.Tag.Get(dbTag)
 		switch tagv {
@@ -32,11 +34,16 @@ func RawFieldNames(in any) []string {
 			continue
 		case "":
 			if sqlbuilder.DefaultFlavor == sqlbuilder.PostgreSQL {
-				out = append(out, fmt.Sprintf(`"%s"`, tagv))
+				out = append(out, fi.Name)
 			} else {
 				out = append(out, fmt.Sprintf("`%s`", fi.Name))
 			}
 		default:
+			// get tag name with the tag option, e.g.:
+			// `db:"id"`
+			// `db:"id,type=char,length=16"`
+			// `db:",type=char,length=16"`
+			// `db:"-,type=char,length=16"`
 			if strings.Contains(tagv, ",") {
 				tagv = strings.TrimSpace(strings.Split(tagv, ",")[0])
 			}
@@ -47,9 +54,9 @@ func RawFieldNames(in any) []string {
 				tagv = fi.Name
 			}
 			if sqlbuilder.DefaultFlavor == sqlbuilder.PostgreSQL {
-				out = append(out, fmt.Sprintf(`"%s"`, tagv))
+				out = append(out, tagv)
 			} else {
-				out = append(out, fmt.Sprintf("`%s`", fi.Name))
+				out = append(out, fmt.Sprintf("`%s`", tagv))
 			}
 		}
 	}
